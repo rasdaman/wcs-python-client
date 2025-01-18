@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi  # environment name set in the PyPI Publisher
-      url: https://pypi.org/p/wcps # Project URL
+      url: https://pypi.org/p/wcs # Project URL
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
