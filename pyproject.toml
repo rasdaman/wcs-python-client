@@ -1,0 +1,69 @@
+[project]
+name = "wcs"
+dynamic = ["version"]
+authors = [
+  { name="Dimitar Misev", email="misev@rasdaman.com" },
+]
+description = "Python client library for WCS (OGC Web Coverage Service) backends."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Operating System :: OS Independent",
+    "Development Status :: 2 - Pre-Alpha",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Software Development :: Libraries",
+]
+keywords = ["wcs", "wcps", "rasdaman", "ogc", "gis", "Web Coverage Service"]
+dependencies = ["requests"]
+
+[project.urls]
+Documentation = "https://rasdaman.github.io/wcs-python-client/"
+Source = "https://github.com/rasdaman/wcs-python-client"
+Issues = "https://github.com/rasdaman/wcs-python-client/issues"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx-autoapi",  # Sphinx AutoAPI for documentation
+    "sphinx",
+    "recommonmark",    # Allows to directly include the README.md
+]
+tests = [
+    "pytest",
+    "numpy",
+    "Pillow",
+    "netCDF4",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["wcs*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.dynamic]
+version = {attr = "wcs.__version__"}
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 120
+max-branches = 15
+disable = """
+    too-many-arguments,
+    not-callable,
+    too-many-lines,
+    too-many-public-methods,
+    too-few-public-methods,
+    too-many-return-statements,
+    too-many-instance-attributes,
+
+"""
