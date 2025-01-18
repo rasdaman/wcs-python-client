@@ -15,7 +15,35 @@ def get_checksum(response: bytes):
 
 def test_list_coverages():
     service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
-    service.list_coverages()
+    coverages = service.list_coverages()
+    cov = coverages['AvgLandTemp']
+    expected = '''AvgLandTemp:
+  subtype: ReferenceableGridCoverage
+  native CRS: OGC:AnsiDate+EPSG:4326
+  geo bbox:
+    ansi:
+      min: "2000-02-01"
+      max: "2015-06-01"
+      crs: OGC:AnsiDate
+    Lat:
+      min: -90
+      max: 90
+      crs: EPSG:4326
+    Lon:
+      min: -180
+      max: 180
+      crs: EPSG:4326
+  lon/lat bbox:
+    Lon:
+      min: -180
+      max: 180
+      crs: EPSG:4326
+    Lat:
+      min: -90
+      max: 90
+      crs: EPSG:4326
+  size in bytes: 4809618404'''
+    assert str(cov) == expected
 
 
 def test_list_full_info():

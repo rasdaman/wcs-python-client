@@ -7,8 +7,8 @@ from datetime import datetime
 from typing import Union, Optional
 from urllib.parse import urlparse, parse_qs
 
-from wcs.model import (BasicCoverage, WCSClientException, WGS84BoundingBox,
-                       BoundingBox, BoundType, Axis, Crs, FullCoverage, GridBoundingBox,
+from wcs.model import (BasicCoverage, WCSClientException,
+                       BoundingBox, BoundType, Axis, FullCoverage,
                        RangeType, Field, NilValue)
 
 
@@ -58,13 +58,12 @@ def parse_describe_coverage(xml_string: Union[str, bytes]) -> FullCoverage:
     return FullCoverage(name, bbox=geo_bbox, grid_bbox=grid_bbox, range_type=range_type, metadata=metadata)
 
 
-def parse_domain_set(domain_set_element: Optional[ET]) -> tuple[Optional[BoundingBox], Optional[GridBoundingBox]]:
+def parse_domain_set(domain_set_element: Optional[ET]) -> tuple[Optional[BoundingBox], Optional[BoundingBox]]:
     """
     Parses an XML element representing a DomainSet into corresponding objects.
 
     It extracts information about spatio-temporal regular/irregular axes, and constructs
-    a :class:`wcs.model.BoundingBox` and :class:`wcs.model.GridBoundingBox` objects.
-    Example XML structure:
+    geo and grid :class:`wcs.model.BoundingBox` objects. Example XML structure:
 
     .. code:: xml
 
@@ -100,7 +99,7 @@ def parse_domain_set(domain_set_element: Optional[ET]) -> tuple[Optional[Boundin
         which in turn include 'cis11:RegularAxis' or 'cis11:IrregularAxis' elements,
         and a 'cis11:GridLimits' element.
 
-    :return: A tuple containing a BoundingBox and a GridBoundingBox object.
+    :return: A tuple containing geo and grid :class:`BoundingBox` objects.
         If the input is None, the function returns (None, None).
 
     :raises WCSClientException: If the provided XML does not conform to the expected structure.
@@ -113,12 +112,11 @@ def parse_domain_set(domain_set_element: Optional[ET]) -> tuple[Optional[Boundin
     grid_axes = []
 
     general_grid = first_child(domain_set_element, 'GeneralGrid')
-    srs_name = general_grid.get('srsName')
+    crs = general_grid.get('srsName')
 
     for axis_element in general_grid:
         tag = parse_tag_name(axis_element)
         name = axis_element.get('axisLabel')
-        uom = axis_element.get('uomLabel')
 
         if tag == 'RegularAxis':
             resolution = axis_element.get('resolution')
@@ -131,31 +129,34 @@ def parse_domain_set(domain_set_element: Optional[ET]) -> tuple[Optional[Boundin
             geo_axes.append(Axis(name,
                                  low=parse_bound(axis_element.get('lowerBound')),
                                  high=parse_bound(axis_element.get('upperBound')),
-                                 uom=uom, is_regular=True, resolution=resolution))
+                                 uom=axis_element.get('uomLabel'),
+                                 resolution=resolution))
 
         elif tag == 'IrregularAxis':
             coefficients = [parse_bound(c.text) for c in axis_element]
             geo_axes.append(Axis(name, low=coefficients[0], high=coefficients[-1],
-                                 uom=uom, is_regular=False, coefficients=coefficients))
+                                 uom=axis_element.get('uomLabel'),
+                                 coefficients=coefficients))
 
         elif tag == 'GridLimits':
             for index_axis in axis_element:
                 grid_axes.append(Axis(index_axis.get('axisLabel'),
                                       low=parse_bound(index_axis.get('lowerBound')),
                                       high=parse_bound(index_axis.get('upperBound')),
-                                      is_regular=True, resolution=1))
+                                      resolution=1))
 
     # sort the geo_axes to match the order of axis_labels
     axis_labels = general_grid.get('axisLabels')
     if axis_labels is None:
         raise WCSClientException("GeneralGrid element missing axisLabels attribute.")
-    axis_labels = axis_labels.split()
-    name_to_index = {name: index for index, name in enumerate(axis_labels)}
-    geo_axes = sorted(geo_axes, key=lambda axis: name_to_index[axis.axis_name])
+    name_to_index = {name: index for index, name in enumerate(axis_labels.split())}
+    geo_axes = sorted(geo_axes, key=lambda axis: name_to_index[axis.name])
 
-    crs = Crs(srs_name, crs_to_short_notation(srs_name))
+    # set axis CRS
+    for axis, axis_crs in zip(geo_axes, crs_to_crs_per_axis(crs)):
+        axis.crs = axis_crs
 
-    return BoundingBox(crs, geo_axes), GridBoundingBox(grid_axes)
+    return BoundingBox(geo_axes, crs), BoundingBox(grid_axes, None)
 
 
 def parse_range_type(range_type_element: Optional[ET]) -> Optional[RangeType]:
@@ -407,7 +408,7 @@ def parse_coverage_summary(element: Optional[ET]) -> Optional[BasicCoverage]:
         return None
     validate_tag_name(element, 'CoverageSummary')
 
-    name, subtype, wgs84_bbox, bbox = None, None, None, None
+    name, subtype, lon, lat, bbox = None, None, None, None, None
     params = {}
 
     for e in element:
@@ -417,7 +418,7 @@ def parse_coverage_summary(element: Optional[ET]) -> Optional[BasicCoverage]:
         elif tag == 'CoverageSubtype':
             subtype = e.text
         elif tag == 'WGS84BoundingBox':
-            wgs84_bbox = parse_wgs84_bounding_box(e)
+            lon, lat = parse_wgs84_bounding_box(e)
         elif tag == 'BoundingBox':
             bbox = parse_bounding_box(e)
         elif tag == 'AdditionalParameters':
@@ -438,20 +439,20 @@ def parse_coverage_summary(element: Optional[ET]) -> Optional[BasicCoverage]:
 
     if axis_list is not None and bbox is not None:
         for axis_name, axis in zip(axis_list, bbox.axes):
-            axis.axis_name = axis_name
+            axis.name = axis_name
 
     return BasicCoverage(name,
                          subtype=subtype,
-                         wgs84_bbox=wgs84_bbox,
+                         lon_lat=(lon, lat),
                          bbox=bbox,
                          size_bytes=size_bytes,
                          additional_params=params)
 
 
-def parse_wgs84_bounding_box(element: Optional[ET]) -> Optional[WGS84BoundingBox]:
+def parse_wgs84_bounding_box(element: Optional[ET]) -> Optional[tuple[Axis, Axis]]:
     """
-    Parses an XML element representing a WGS84 bounding box into a
-    :class:`wcs.model.WGS84BoundingBox` object. Example XML structure:
+    Parses an XML element representing a WGS84 bounding box into a tuple of lon/lat
+    :class:`wcs.model.Axis` objects. Example XML structure:
 
     .. code:: xml
 
@@ -462,8 +463,7 @@ def parse_wgs84_bounding_box(element: Optional[ET]) -> Optional[WGS84BoundingBox
 
     :param element: A 'WGS84BoundingBox' XML element containing
         'LowerCorner' and 'UpperCorner' elements.
-    :return: A :class:`wcs.model.WGS84BoundingBox` object containing
-        longitude and latitude axes, or None if the input element is None.
+    :return: a tuple of lon/lat :class:`wcs.model.Axis` objects, or None if the input element is None.
     :raises WCSClientException: If the element tag is not 'WGS84BoundingBox'.
     """
     if element is None:
@@ -475,9 +475,9 @@ def parse_wgs84_bounding_box(element: Optional[ET]) -> Optional[WGS84BoundingBox
     if len(axes) != 2:
         raise WCSClientException(f"Expected a WGS84BoundingBox element bounds for lon/lat axes, "
                                  f"but got {len(axes)} bounds")
-    axes[0].axis_name = 'Lon'
-    axes[1].axis_name = 'Lat'
-    return WGS84BoundingBox(axes[0], axes[1])
+    axes[0].name = 'Lon'
+    axes[1].name = 'Lat'
+    return axes[0], axes[1]
 
 
 def parse_bounding_box(bbox_element: Optional[ET], crs: str = None) -> Optional[BoundingBox]:
@@ -529,13 +529,13 @@ def parse_bounding_box(bbox_element: Optional[ET], crs: str = None) -> Optional[
     if crs is None:
         raise WCSClientException(f"Failed parsing CRS from XML element:\n"
                                  f"{element_to_string(bbox_element)}")
-    crs = Crs(crs, crs_to_short_notation(crs))
 
+    axis_crss = crs_to_crs_per_axis(crs)
     axes = []
-    for low, high in zip(ll, ur):
-        axes.append(Axis('', low, high))
+    for low, high, axis_crs in zip(ll, ur, axis_crss):
+        axes.append(Axis('', low, high, crs=axis_crs))
 
-    return BoundingBox(crs, axes)
+    return BoundingBox(axes, crs)
 
 
 def parse_additional_parameters(element: ET) -> dict[str, str]:
@@ -555,7 +555,6 @@ def parse_additional_parameters(element: ET) -> dict[str, str]:
                 <ows:Value>ansi,Lat,Lon</ows:Value>
             </ows:AdditionalParameter>
         </ows:AdditionalParameters>
-
 
     :param element: An XML element containing 'AdditionalParameter' child elements.
                     Each 'AdditionalParameter' element is expected to contain a 'Name'
@@ -658,49 +657,39 @@ def parse_bound(bound: Optional[str]) -> Optional[BoundType]:
     raise WCSClientException(f"Failed parsing bound '{bound}'")
 
 
-def crs_to_short_notation(url: Optional[str]) -> Optional[str]:
+def crs_to_crs_per_axis(crs: str) -> list[str]:
     """
-    Parse CRS identifiers in `this notation <https://doc.rasdaman.org/05_geo-services-guide.html#crs-notation>`_.
+    Convert a single CRS to a list of CRS per axis.
+    If ``crs`` contains crs-compound, i.e. it is a compund CRS, then it is split first
+    into it's component CRS. For each crs then,
+    - it is added twice into the result list if 'EPSG' is contained in it
+    - otherwise, it is added once into the result list
 
-    :param url: a CRS identifier, e.g.
-
-        - http://localhost:8080/rasdaman/def/crs/EPSG/0/4326
-        - EPSG/0/4326
-        - EPSG:4326
-
-    :return: Short CRS notation, e.g. EPSG:4326; None if input is None or the method
-        fails to parse the url.
+    :return: a list of CRS per axis, or an empty list if crs is None.
     """
-    if url is None:
-        return None
-
-    # handle "EPSG:4326"
-    if not '/' in url:
-        return url
-
-    parsed_url = urlparse(url)
-    path = parsed_url.path.strip('/')
-
-    # compound urls, e.g. "https://www.opengis.net/def/crs-compound?1=..."
-    if '/crs-compound' in url:
+    if crs is None:
+        return []
+    crss = []
+    if 'crs-compound' in crs:
+        parsed_url = urlparse(crs)
         query_params = parse_qs(parsed_url.query)
-        ret = []
         for _, value in query_params.items():
             for subcrs in value:
-                ret.append(crs_to_short_notation(subcrs))
-        return '+'.join(ret)
+                crss.append(subcrs)
+    else:
+        crss = [crs]
 
-    # url == "https://www.opengis.net/def/crs/EPSG/0/4326"
-    parts = path.split('/')
-    if len(parts) > 2:
-        authority = parts[-3]
-        version = parts[-2]
-        code = parts[-1]
-        if version == "0":
-            return f'{authority}:{code}'
-        return f'{authority}:{version}:{code}'
+    ret = []
+    for axis_crs in crss:
+        ret.append(axis_crs)
+        if 'EPSG' in axis_crs:
+            ret.append(axis_crs)
+    return ret
 
-    return None
+
+# ---------------------------------------------------------------------------------------
+# XML
+# ---------------------------------------------------------------------------------------
 
 
 def get_child(element: ET, tag: str, throw_if_not_found=True) -> Optional[ET]:

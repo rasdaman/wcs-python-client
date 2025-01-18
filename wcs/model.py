@@ -6,15 +6,16 @@ Classes holding information about coverages on a WCS server.
 # https://stackoverflow.com/a/33533514
 from __future__ import annotations
 
+import json
+import textwrap
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Union, Optional
 from urllib.parse import parse_qs, urlparse
-import json
-import textwrap
 
 BoundType = Union[int, float, str, datetime]
 """Type for axis interval bounds."""
+
 
 @dataclass
 class BasicCoverage:
@@ -24,8 +25,9 @@ class BasicCoverage:
 
     :param name: the coverage name.
     :param subtype: coverage subtype, e.g. 'ReferenceableGridCoverage'
-    :param wgs84_bbox: a WGS84 bbox
     :param bbox: bounding box in native CRS
+    :param lon_lat: a tuple of longitude / latitude axes respresenting the
+        WGS84 bounding box of the coverage
     :param size_bytes: coverage size in bytes; None if not reported by the server
     :param additional_params: additional key/value parameters
     """
@@ -33,30 +35,35 @@ class BasicCoverage:
     def __init__(self,
                  name: str,
                  subtype: str = None,
-                 wgs84_bbox: WGS84BoundingBox = None,
                  bbox: BoundingBox = None,
+                 lon_lat: tuple[Axis, Axis] = None,
                  size_bytes: int = None,
                  additional_params: dict[str, str] = None):
         self.name = name
+        """Coverage name"""
         self.subtype = subtype
-        self.wgs84_bbox = wgs84_bbox
+        """Coverage subtype, e.g. ReferenceableGridCoverage"""
         self.bbox = bbox
+        """Bounding box of all coverage axes in native CRS"""
+        self.lon, self.lat = lon_lat or (None, None)
+        """Longitude / Latitude axes describing the WGS84 bounding box of the coverage"""
         self.size_bytes = size_bytes
+        """Coverage size in bytes; None if not reported by the server"""
         self.additional_params = additional_params
+        """A dictionary of additional key/value parameters if reported by the server"""
 
     def __str__(self):
-        indent = '\n- '
-        ret = self.name
+        ret = self.name + ':'
         if self.subtype is not None:
-            ret += f'{indent}subtype: {self.subtype}'
+            ret += f'\n  subtype: {self.subtype}'
         if self.bbox is not None:
             ret += f'\n{self.bbox}'
-        if self.wgs84_bbox is not None:
-            ret += f'{indent}WGS84 bbox: {self.wgs84_bbox}'
+        if self.lon is not None:
+            ret += f'\n  lon/lat bbox:{self.lon}{self.lat}'
         if self.size_bytes is not None:
-            ret += f'{indent}size in bytes: {self.size_bytes}'
+            ret += f'\n  size in bytes: {self.size_bytes}'
         if self.additional_params is not None and len(self.additional_params) > 0:
-            ret += f'{indent}additional params: {self.additional_params}'
+            ret += f'\n  additional params: {self.additional_params}'
         return ret
 
 
@@ -74,7 +81,7 @@ class FullCoverage:
     def __init__(self,
                  name: str,
                  bbox: BoundingBox,
-                 grid_bbox: GridBoundingBox,
+                 grid_bbox: BoundingBox,
                  range_type: RangeType,
                  metadata: dict = None):
         self.name = name
@@ -103,38 +110,39 @@ class Axis:
     """
     An axis with a name, low/upper bounds, a CRS, uom, resolution, coefficients.
 
-    :param axis_name: Name of the axis.
+    :param name: Name of the axis.
     :param low: Lower bound of the axis.
     :param high: Upper bound of the axis.
     :param crs: Coordinate Reference System, e.g., "EPSG:4326".
     :param uom: Unit of measure, e.g., "degree".
     :param resolution: Axis resolution, for regular axes.
-    :param is_regular: True if regularly gridded, False if irregular, None if unknown.
     :param coefficients: Axis coefficients for irregular axes.
     """
-    axis_name: str
+    name: str
     low: BoundType
     high: BoundType
-    crs: Optional[Crs] = None
+    crs: Optional[str] = None
     uom: Optional[str] = None
     resolution: Optional[BoundType] = None
-    is_regular: Optional[bool] = None
     coefficients: Optional[list[BoundType]] = None
 
     def __str__(self):
         indent = '\n    '
-        ret = f'{indent}{self.axis_name}:'
+        ret = f'{indent}{self.name}:'
         indent += '  '
         ret += f'{indent}min: {_bound_to_str(self.low)}'
         ret += f'{indent}max: {_bound_to_str(self.high)}'
         if self.crs is not None:
-            ret += f'{indent}crs: {self.crs}'
+            ret += f'{indent}crs: {Crs.to_short_notation(self.crs)}'
         if self.uom is not None:
             ret += f'{indent}uom: {self.uom}'
         if self.resolution is not None:
             ret += f'{indent}resolution: {self.resolution}'
 
-        ret += f'{indent}type: {"regular" if self.is_regular else "irregular"}'
+        if self.resolution is not None:
+            ret += f'{indent}type: regular'
+        if self.coefficients is not None:
+            ret += f'{indent}type: irregular'
 
         if self.coefficients is not None:
             coefficients = ', '.join([_bound_to_str(c) for c in self.coefficients])
@@ -149,153 +157,55 @@ class Axis:
 
 
 @dataclass
-class WGS84BoundingBox:
-    """
-    Represents the WGS84 bounding box of a coverage.
-
-    The WGS84BoundingBox defines the spatial extent of a coverage in terms of
-    longitude and latitude, corresponding to the "WGS84BoundingBox" element in a
-    GetCapabilities CoverageSummary. It contains the low/high limits of the
-    longitude and latitude axes.
-
-    Example XML structure for a WGS84BoundingBox:
-
-    .. code:: xml
-
-        <ows:WGS84BoundingBox>
-            <ows:LowerCorner>-180 -90</ows:LowerCorner>
-            <ows:UpperCorner>180 90</ows:UpperCorner>
-        </ows:WGS84BoundingBox>
-
-    :param lon: The :class:`Axis` object representing the longitude axis of the bounding box.
-                It contains the lower and upper bounds for the longitude.
-    :param lat: The :class:`Axis` object representing the latitude axis of the bounding box.
-                It contains the lower and upper bounds for the latitude.
-    """
-
-    def __init__(self, lon: Axis, lat: Axis):
-        self.lon = lon
-        """The longitude axis of the bounding box, containing its lower and upper bounds."""
-        self.lat = lat
-        """The latitude axis of the bounding box, containing its lower and upper bounds."""
-
-    def __str__(self):
-        return f'[{self.lon}, {self.lat}]'
-
-
-@dataclass
 class BoundingBox:
     """
     The bounding box of a coverage, containing low/high limits of all its axes.
-    Corresponds to the "BoundingBox" element in a GetCapabilities CoverageSummary, e.g.
 
-    .. code:: xml
+    The axes can be accessed through the :attr:`axes` attribute, or through
+    the subscript operator, e.g.
 
-        <ows:BoundingBox
-          crs="https://www.opengis.net/def/crs-compound?
-          1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;
-          2=https://www.opengis.net/def/crs/EPSG/0/4326" dimensions="3">
-          <ows:LowerCorner>
-            "2015-01-01T00:00:00.000Z" -90 -180
-          </ows:LowerCorner>
-          <ows:UpperCorner>
-            "2015-05-01T00:00:00.000Z" 90 180
-          </ows:UpperCorner>
-        </ows:BoundingBox>
+    .. code:: python
+
+        bbox[1]      # get the second axis
+        bbox['Lat']  # get the axis with name Lat
 
     :param crs: native CRS of the axis coordinates
     :param axes: a list of :class:`Axis` objects
     """
 
-    def __init__(self, crs: Crs, axes: list[Axis]):
-        self.crs = crs
+    def __init__(self, axes: list[Axis], crs: Optional[str]):
         self.axes = axes
-        # update the CRS of each axis properly
-        crs_per_axis = crs.get_crs_per_axis()
-        if len(self.axes) == len(crs_per_axis):
-            for axis, axis_crs in zip(self.axes, crs_per_axis):
-                axis.crs = Crs(axis_crs[0], axis_crs[1])
+        self.crs = crs
 
     def __str__(self):
-        ret = f'  native CRS: {self.crs}\n'
-        ret += f'  geo bbox:{_list_to_str(self.axes, "")}'
+        bbox_type = 'grid'
+        ret = ''
+        if self.crs is not None:
+            ret += f'  native CRS: {Crs.to_short_notation(self.crs)}\n'
+            bbox_type = 'geo'
+        ret += f'  {bbox_type} bbox:{_list_to_str(self.axes, "")}'
         return ret
 
-
-@dataclass
-class GridBoundingBox:
-    """
-    The grid bounding box of a coverage.
-
-    It consists of grid integer low/high bounds for each axis.
-    Unlike :class:`BoundingBox`, it is not geo-referenced so no CRS information is present.
-
-    :param axes: a list of axes
-    """
-
-    def __init__(self, axes: list[Axis]):
-        self.axes = axes
-
-    def __str__(self):
-        return f'  grid bbox:{_list_to_str(self.axes, "")}'
-
-
-@dataclass
-class Crs:
-    """
-    Handle coordinate reference system (CRS) identifiers.
-
-    It stores a full CRS identifier and an optional shorthand CRS identifier.
-
-    :param crs: The full coordinate reference system identifier.
-                This is a complete URI or other identifier that specifies the
-                spatial reference system used for the data.
-    :param shorthand_crs: An optional shorthand identifier for the CRS, such as
-                          an EPSG code (e.g., "EPSG:4326"). This provides a more
-                          human-readable format.
-    """
-
-    def __init__(self, crs: str, shorthand_crs: str = None):
-        self.crs = crs
-        """The full CRS identifier."""
-        self.shorthand_crs = shorthand_crs
-        """A shorthand identifier for the CRS; defaults to None."""
-
-    def __str__(self):
-        return self.shorthand_crs if self.shorthand_crs else self.crs
-
-    def get_crs_per_axis(self) -> list[tuple[str, str]]:
+    def __getitem__(self, index: Union[int, str]) -> Axis:
         """
-        Expands the :attr:`crs` and :attr:`shorthand_crs` to individual pairs per axis.
+        Get the :class:`Axis` object from the :attr:`axes` list
+        according to the specified ``index``. The ``index`` can be an
+        axis name, or an index of the axes list.
+        :raise KeyError: if the axis name is not found, the axis index
+            out of bounds, or the ``index`` is not an int or string.
         """
-        crss = []
-        if 'crs-compound' in self.crs:
-            parsed_url = urlparse(self.crs)
-            query_params = parse_qs(parsed_url.query)
-            for _, value in query_params.items():
-                for subcrs in value:
-                    crss.append(subcrs)
-        else:
-            crss = [self.crs]
+        if isinstance(index, int):
+            return self.axes[index]
+        if isinstance(index, str):
+            for axis in self.axes:
+                if axis.name == index:
+                    return axis
 
-        if self.shorthand_crs is not None:
-            shorthand_crss = self.shorthand_crs.split('+')
-        else:
-            shorthand_crss = [None] * len(crss)
+            axis_names = ', '.join([axis.name for axis in self.axes])
+            raise KeyError(f"Axis '{index}' not found in the BoundingBox axes: {axis_names}")
 
-        ret = []
-        for crs, shorthand_crs in zip(crss, shorthand_crss):
-            ret.append((crs, shorthand_crs))
-            if 'EPSG' in crs:
-                ret.append((crs, shorthand_crs))
-        return ret
-
-    def get_crs_for_axis(self, axis_index) -> tuple[str, str]:
-        """
-        :return: the (crs, shorthand_crs) for the given ``axis_index`` (0-based).
-        """
-        crs_per_axis = self.get_crs_per_axis()
-        return crs_per_axis[axis_index]
+        raise KeyError(f"Axis index has an invalid type {index.__class__},"
+                       f"expected a string or int.")
 
 
 @dataclass
@@ -304,22 +214,49 @@ class RangeType:
     Represents the range type of a coverage, indicating the structure of the data.
 
     The range type consists of a list of field types (:class:`Field`).
+    The fields can be accessed through the :attr:`fields` attribute, or through
+    the subscript operator, e.g.
+
+    .. code:: python
+
+        range_type[1]      # get the second field
+        range_type['blue']  # get the field with name blue
 
     :param fields: A list of :class:`Field` objects describing the fields (also
-                   known as bands or channels) of a coverage. Each field is
-                   initialized based on its name, ensuring a unique mapping.
+                   known as bands or channels) of a coverage.
     """
 
     def __init__(self, fields):
-        self.fields: dict[str, Field] = dict(zip([f.name for f in fields], fields))
+        self.fields: list[Field] = fields
         """
-        A dictionary mapping field names to their corresponding :class:`Field` objects.
+        A list of :class:`Field` objects corresponding to the bands of the coverage.
         """
 
     def __str__(self):
-        fields = ''.join([str(f) for _, f in self.fields.items()])
+        fields = _list_to_str(self.fields, '')
         ret = f'  range type fields:{fields}'
         return ret
+
+    def __getitem__(self, index: Union[int, str]) -> Field:
+        """
+        Get the :class:`Field` object from the :attr:`fields` list
+        according to the specified ``index``. The ``index`` can be a
+        field (band) name, or an index of the fields list.
+        :raise KeyError: if the field name is not found, the fields index
+            out of bounds, or the ``index`` is not an int or string.
+        """
+        if isinstance(index, int):
+            return self.fields[index]
+        if isinstance(index, str):
+            for field in self.fields:
+                if field.name == index:
+                    return field
+
+            names = ', '.join([field.name for field in self.fields])
+            raise KeyError(f"Field '{index}' not found in the RangeType fields: {names}")
+
+        raise KeyError(f"Field index has an invalid type {index.__class__},"
+                       f"expected a string or int.")
 
 
 @dataclass
@@ -403,6 +340,56 @@ class NilValue:
         if self.reason is not None and len(self.reason) > 0:
             ret += ': ' + self.reason
         return ret
+
+
+class Crs:
+    """Utility class for handling CRS."""
+
+    @staticmethod
+    def to_short_notation(url: Optional[str]) -> Optional[str]:
+        """
+        Parse CRS identifiers in `this notation
+        <https://doc.rasdaman.org/05_geo-services-guide.html#crs-notation>`_.
+
+        :param url: a CRS identifier, e.g.
+
+            - http://localhost:8080/rasdaman/def/crs/EPSG/0/4326
+            - EPSG/0/4326
+            - EPSG:4326
+
+        :return: Short CRS notation, e.g. EPSG:4326; None if input is None or the method
+            fails to parse the url.
+        """
+        if url is None:
+            return None
+
+        # handle "EPSG:4326"
+        if not '/' in url:
+            return url
+
+        parsed_url = urlparse(url)
+        path = parsed_url.path.strip('/')
+
+        # compound urls, e.g. "https://www.opengis.net/def/crs-compound?1=..."
+        if '/crs-compound' in url:
+            query_params = parse_qs(parsed_url.query)
+            ret = []
+            for _, value in query_params.items():
+                for subcrs in value:
+                    ret.append(Crs.to_short_notation(subcrs))
+            return '+'.join(ret)
+
+        # url == "https://www.opengis.net/def/crs/EPSG/0/4326"
+        parts = path.split('/')
+        if len(parts) > 2:
+            authority = parts[-3]
+            version = parts[-2]
+            code = parts[-1]
+            if version == "0":
+                return f'{authority}:{code}'
+            return f'{authority}:{version}:{code}'
+
+        return None
 
 
 class WCSClientException(Exception):

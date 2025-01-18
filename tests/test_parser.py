@@ -3,9 +3,9 @@ from datetime import datetime
 
 import pytest
 
-from wcs.model import (WCSClientException, BoundingBox, WGS84BoundingBox,
-                       BasicCoverage, RangeType, GridBoundingBox)
-from wcs.parser import (crs_to_short_notation, parse_bound, parse_tag_name,
+from wcs.model import (WCSClientException, BoundingBox,
+                       BasicCoverage, RangeType, Axis, Crs)
+from wcs.parser import (parse_bound, parse_tag_name,
                         parse_bounds_list, parse_additional_parameters,
                         parse_bounding_box, parse_wgs84_bounding_box, parse_coverage_summary,
                         parse_coverage_summaries, parse_range_type, parse_domain_set, element_to_dict)
@@ -37,18 +37,18 @@ def test_parse_domain_set_valid():
     bounding_box, grid_bbox = parse_domain_set(domain_set_element)
 
     assert isinstance(bounding_box, BoundingBox)
-    assert isinstance(grid_bbox, GridBoundingBox)
+    assert isinstance(grid_bbox, BoundingBox)
 
     assert len(bounding_box.axes) == 3
     assert len(grid_bbox.axes) == 3
 
-    assert bounding_box.axes[0].axis_name == 'ansi'
-    assert bounding_box.axes[1].axis_name == 'Lat'
-    assert bounding_box.axes[2].axis_name == 'Lon'
+    assert bounding_box.axes[0].name == 'ansi'
+    assert bounding_box.axes[1].name == 'Lat'
+    assert bounding_box.axes[2].name == 'Lon'
 
-    assert grid_bbox.axes[0].axis_name == 'i'
-    assert grid_bbox.axes[1].axis_name == 'j'
-    assert grid_bbox.axes[2].axis_name == 'k'
+    assert grid_bbox.axes[0].name == 'i'
+    assert grid_bbox.axes[1].name == 'j'
+    assert grid_bbox.axes[2].name == 'k'
 
 
 def test_parse_domain_set_none_input():
@@ -112,12 +112,12 @@ def test_parse_domain_set_irregular_axis():
     bounding_box, grid_bbox = parse_domain_set(domain_set_element)
 
     assert isinstance(bounding_box, BoundingBox)
-    assert isinstance(grid_bbox, GridBoundingBox)
+    assert isinstance(grid_bbox, BoundingBox)
 
     assert len(bounding_box.axes) == 1
     assert len(grid_bbox.axes) == 0
 
-    assert bounding_box.axes[0].axis_name == 'ansi'
+    assert bounding_box.axes[0].name == 'ansi'
     assert bounding_box.axes[0].low.isoformat() == "2000-02-01T00:00:00+00:00"
 
 
@@ -148,7 +148,7 @@ def test_parse_range_type_valid_category():
     range_type = parse_range_type(range_type_element)
     assert isinstance(range_type, RangeType)
     assert len(range_type.fields) == 1
-    field = range_type.fields['land_use']
+    field = range_type['land_use']
     assert field.name == "land_use"
     assert field.is_quantity is False
     assert field.label == "National Land Use Database"
@@ -181,7 +181,7 @@ def test_parse_range_type_valid_quantity():
     range_type = parse_range_type(range_type_element)
     assert isinstance(range_type, RangeType)
     assert len(range_type.fields) == 1
-    field = range_type.fields['temperature']
+    field = range_type['temperature']
     assert field.name == "temperature"
     assert field.is_quantity is True
     assert field.label == "Monthly average air temperature"
@@ -356,11 +356,12 @@ def test_parse_coverage_summary_valid():
     assert coverage.subtype == "ReferenceableGridCoverage"
     assert coverage.size_bytes == 188325000
     assert coverage.additional_params == {}
-    assert coverage.wgs84_bbox is not None
+    assert coverage.lon is not None
+    assert coverage.lat is not None
     assert coverage.bbox is not None
-    assert coverage.bbox.axes[0].axis_name == 'ansi'
-    assert coverage.bbox.axes[1].axis_name == 'Lat'
-    assert coverage.bbox.axes[2].axis_name == 'Lon'
+    assert coverage.bbox.axes[0].name == 'ansi'
+    assert coverage.bbox.axes[1].name == 'Lat'
+    assert coverage.bbox.axes[2].name == 'Lon'
 
 
 def test_parse_coverage_summary_none():
@@ -407,9 +408,9 @@ def test_parse_coverage_summary_no_axis_list():
     element = ET.fromstring(xml_string)
     coverage = parse_coverage_summary(element)
     assert coverage.bbox is not None
-    assert coverage.bbox.axes[0].axis_name == ''
-    assert coverage.bbox.axes[1].axis_name == ''
-    assert coverage.bbox.axes[2].axis_name == ''
+    assert coverage.bbox.axes[0].name == ''
+    assert coverage.bbox.axes[1].name == ''
+    assert coverage.bbox.axes[2].name == ''
 
 
 # ----------------------------------------------------------------------------
@@ -423,14 +424,15 @@ def test_parse_wgs84_bounding_box_valid():
     </WGS84BoundingBox>
     '''
     bbox_element = ET.fromstring(xml_string)
-    result = parse_wgs84_bounding_box(bbox_element)
-    assert isinstance(result, WGS84BoundingBox)
-    assert result.lon.axis_name == 'Lon'
-    assert result.lat.axis_name == 'Lat'
-    assert result.lon.low == -180
-    assert result.lon.high == 180
-    assert result.lat.low == -90
-    assert result.lat.high == 90
+    lon, lat = parse_wgs84_bounding_box(bbox_element)
+    assert isinstance(lon, Axis)
+    assert isinstance(lat, Axis)
+    assert lon.name == 'Lon'
+    assert lat.name == 'Lat'
+    assert lon.low == -180
+    assert lon.high == 180
+    assert lat.low == -90
+    assert lat.high == 90
 
 
 def test_parse_wgs84_bounding_box_none():
@@ -476,7 +478,7 @@ def test_parse_bounding_box_valid():
     bbox_element = ET.fromstring(xml_string)
     bbox = parse_bounding_box(bbox_element)
     assert isinstance(bbox, BoundingBox)
-    assert bbox.crs.shorthand_crs == "EPSG:4326"
+    assert bbox.crs == "http://www.opengis.net/def/crs/EPSG/0/4326"
     assert len(bbox.axes) == 2
     assert bbox.axes[0].low == -90 and bbox.axes[0].high == 90
     assert bbox.axes[1].low == -180 and bbox.axes[1].high == 180
@@ -538,7 +540,9 @@ def test_parse_bounding_box_compound_crs():
     bbox_element = ET.fromstring(xml_string)
     bbox = parse_bounding_box(bbox_element)
     assert isinstance(bbox, BoundingBox)
-    assert bbox.crs.shorthand_crs == "EPSG:4326+EPSG:3857"
+    assert bbox.crs == "https://www.opengis.net/def/crs-compound?" + \
+                       "1=http://www.opengis.net/def/crs/EPSG/0/4326&" + \
+                       "2=http://www.opengis.net/def/crs/EPSG/0/3857"
 
 
 # ----------------------------------------------------------------------------
@@ -688,27 +692,27 @@ def test_parse_bound_invalid():
 
 
 # ----------------------------------------------------------------------------
-# crs_to_short_notation
+# Crs.to_short_notation
 
 def test_none_input():
-    assert crs_to_short_notation(None) is None
+    assert Crs.to_short_notation(None) is None
 
 
 def test_short_notation():
-    assert crs_to_short_notation("EPSG:4326") == "EPSG:4326"
-    assert crs_to_short_notation("EPSG:1:4326") == "EPSG:1:4326"
+    assert Crs.to_short_notation("EPSG:4326") == "EPSG:4326"
+    assert Crs.to_short_notation("EPSG:1:4326") == "EPSG:1:4326"
 
 
 def test_path_notation():
-    assert crs_to_short_notation("EPSG/0/4326") == "EPSG:4326"
+    assert Crs.to_short_notation("EPSG/0/4326") == "EPSG:4326"
 
 
 def test_full_url_notation():
-    assert crs_to_short_notation("http://localhost:8080/rasdaman/def/crs/EPSG/0/4326") == "EPSG:4326"
+    assert Crs.to_short_notation("http://localhost:8080/rasdaman/def/crs/EPSG/0/4326") == "EPSG:4326"
 
 
 def test_full_url_with_version_notation():
-    assert crs_to_short_notation("http://localhost:8080/rasdaman/def/crs/EPSG/1/4326") == "EPSG:1:4326"
+    assert Crs.to_short_notation("http://localhost:8080/rasdaman/def/crs/EPSG/1/4326") == "EPSG:1:4326"
 
 
 def test_compound_url_notation():
@@ -716,7 +720,7 @@ def test_compound_url_notation():
            "1=http://localhost:8080/rasdaman/def/crs/EPSG/0/4326&"
            "2=http://localhost:8080/rasdaman/def/crs/EPSG/0/3857")
     expected = "EPSG:4326+EPSG:3857"
-    assert crs_to_short_notation(url) == expected
+    assert Crs.to_short_notation(url) == expected
 
 
 def test_compound_url_with_version_notation():
@@ -724,11 +728,11 @@ def test_compound_url_with_version_notation():
            "1=http://localhost:8080/rasdaman/def/crs/EPSG/1/4326&"
            "2=http://localhost:8080/rasdaman/def/crs/EPSG/0/3857")
     expected = "EPSG:1:4326+EPSG:3857"
-    assert crs_to_short_notation(url) == expected
+    assert Crs.to_short_notation(url) == expected
 
 
 def test_unrecognized_url():
-    assert crs_to_short_notation("http://example.com/unknown") is None
+    assert Crs.to_short_notation("http://example.com/unknown") is None
 
 
 # ----------------------------------------------------------------------------
