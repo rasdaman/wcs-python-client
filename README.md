@@ -1,5 +1,3 @@
-from docutils.nodes import description
-
 # Overview
 
 The [OGC Web Coverage Service (WCS) standard](https://www.ogc.org/standards/wcs)
