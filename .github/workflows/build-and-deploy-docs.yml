@@ -7,7 +7,7 @@ on:
     branches: [ main ]
     paths:
       - 'docs/**'
-      - 'wcps/**'
+      - 'wcs/**'
 
 permissions:
   contents: write
