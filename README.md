@@ -13,26 +13,36 @@ given WCS endpoint.
 
 # Examples
 
+## List Coverages
+
 The example below illustrates how to get a list of 
-[BasicCoverage](autoapi/wcs/model/index.html#wcs.model.BasicCoverage)
-objects for all coverages on the server, and extract various details
+[BasicCoverage](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.BasicCoverage)
+objects for all coverages (datacubes) on the server, and extract various details
 for a particular coverage.
+
+1. Create a [WebCoverageService](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.service.WebCoverageService)
+   object. Optionally, a username and a password may be specified, if the endpoint requires them.
 
 ```python
 from wcs.service import WebCoverageService
-from wcs.model import Crs
 
 wcs_endpoint = "https://ows.rasdaman.org/rasdaman/ows"
 service = WebCoverageService(wcs_endpoint)
+# service = WebCoverageService(wcs_endpoint, username=..., password=...)
+```
 
-# get a list of all coverages, with basic information such
-# as a WGS 84 bounding box and a native bounding box
+2. With the `service` object we can get a map of all coverages
+   (coverage name -> [BasicCoverage](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.BasicCoverage)), 
+   with basic information such as a WGS 84 bounding box and a native bounding box:
 
+```python
+# get a list of all coverages, with basic information such as a WGS 84 bounding box and a native bounding box:
 coverages = service.list_coverages()
+```
 
-# get the AvgLandTemp coverage object, see BasicCoverage
-# in the API reference
+3. Let's inspect a single coverage with name `AvgLandTemp`:
 
+```python
 avg_land_temp = coverages['AvgLandTemp']
 
 # print all information
@@ -86,6 +96,7 @@ print(bbox.crs)
 
 # coverage crs identifier in shorthand notation
 
+from wcs.model import Crs
 print(Crs.to_short_notation(bbox.crs))
 
 # OGC:AnsiDate+EPSG:4326
@@ -112,26 +123,19 @@ print(axis.name)
 if avg_land_temp.size_bytes is not None:
     print(avg_land_temp.size_bytes)
     # 4809618404
-
 ```
 
-The above example gets basic information about the coverage
-through what is published in the WCS GetCapabilities response.
+## Full Coverage Information
+
+The previous example gets basic information about the coverage
+through what is published in the WCS *GetCapabilities* response.
 
 More detailed information can be retrieved with the 
-`list_full_info` method, which returns a
-[FullCoverage](autoapi/wcs/model/index.html#wcs.model.FullCoverage)
-object.
+`Service.list_full_info` method, which parses the corresponding *DescribeCoverage* document and returns a
+[FullCoverage](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.FullCoverage)
+object:
 
 ```python
-from wcs.service import WebCoverageService
-
-wcs_endpoint = "https://ows.rasdaman.org/rasdaman/ows"
-service = WebCoverageService(wcs_endpoint)
-
-# get full information for a particular coverage by
-# parsing its DescribeCoverage document from the WCS server
-
 full_avg_land_temp = service.list_full_info('AvgLandTemp')
 
 # print all information
@@ -190,20 +194,29 @@ print(full_avg_land_temp)
 #     {
 #       "covMetadata": null
 #     }
+```
 
+In addition to the geo `bbox` in native CRS, the 
+`FullCoverage` object also has a `grid_bbox` attribute, which contains 
+the integer grid axis bounds of the coverage. This is the same 
+type of 
+[BoundingBox](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.BoundingBox)
+object, except its `crs` attribute is `None`.
 
-# In addition to the geo bounding box in native CRS, the 
-# `FullCoverage` object also has a `grid_bbox`, which contains 
-# the integer grid axis bounds of the coverage. This is the same 
-# type of `BoundingBox` object, except the `crs` is None.
-
+```python
 print(full_avg_land_temp.grid_bbox)
+```
 
-# The range_type indicates the structure of the cell values
-# of the coverage. It contains a `fields` attribute, which is
-# a list of `Field` object corresponding to the bands of the 
-# coverage. Check the documentation of RangeType for full details.
+The `range_type` attribute indicates the structure of the cell values
+of the coverage. It contains a `fields` attribute, which is
+a list of
+[Field](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.Field)
+objects corresponding to the bands of the 
+coverage. Check the documentation of
+[RangeType](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.RangeType)
+for full details.
 
+```python
 range_type = full_avg_land_temp.range_type
 all_fields = range_type.fields
 field = range_type['Gray']  # or range_type[0]
@@ -220,6 +233,9 @@ else:
   codespace = field.codespace
 ```
 
+Finally, any coverage metadata is available from the `metadata` attribute,
+which is a nested dict mirroring the XML structure in the *DescribeCoverage* document.
+
 
 # Contributing
 
@@ -228,6 +244,8 @@ The directory structure is as follows:
 - `wcs` - the main library code
 - `tests` - testing code
 - `docs` - documentation in reStructuredText format
+
+The `./pylint.sh` script should be executed before committing code changes.
 
 ## Tests
 
