@@ -20,27 +20,28 @@ The example below illustrates how to get a list of
 objects for all coverages (datacubes) on the server, and extract various details
 for a particular coverage.
 
-1. Create a [WebCoverageService](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/service/index.html#wcs.service.WebCoverageService)
-   object. Optionally, a username and a password may be specified, if the endpoint requires them.
+First we need to create a
+[WebCoverageService](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/service/index.html#wcs.service.WebCoverageService)
+object. Optionally, a username and a password may be specified, if the endpoint requires them.
 
 ```python
 from wcs.service import WebCoverageService
 
 wcs_endpoint = "https://ows.rasdaman.org/rasdaman/ows"
 service = WebCoverageService(wcs_endpoint)
-# service = WebCoverageService(wcs_endpoint, username=..., password=...)
+# service = WebCoverageService(wcs_endpoint,
+#                              username=..., password=...)
 ```
 
-2. With the `service` object we can get a map of all coverages
-   (coverage name -> [BasicCoverage](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.BasicCoverage)), 
-   with basic information such as a WGS 84 bounding box and a native bounding box:
+With the `service` object we can get a map of all coverages
+(coverage name -> [BasicCoverage](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.BasicCoverage)), 
+with basic information such as a WGS 84 bounding box and a native bounding box:
 
 ```python
-# get a list of all coverages, with basic information such as a WGS 84 bounding box and a native bounding box:
 coverages = service.list_coverages()
 ```
 
-3. Let's inspect a single coverage with name `AvgLandTemp`:
+Let's inspect a single coverage with name `AvgLandTemp`:
 
 ```python
 avg_land_temp = coverages['AvgLandTemp']
@@ -131,7 +132,7 @@ The previous example gets basic information about the coverage
 through what is published in the WCS *GetCapabilities* response.
 
 More detailed information can be retrieved with the 
-`Service.list_full_info` method, which parses the corresponding *DescribeCoverage* document and returns a
+`service.list_full_info` method, which parses the corresponding *DescribeCoverage* document and returns a
 [FullCoverage](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.model.FullCoverage)
 object:
 
