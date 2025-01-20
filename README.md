@@ -20,7 +20,7 @@ The example below illustrates how to get a list of
 objects for all coverages (datacubes) on the server, and extract various details
 for a particular coverage.
 
-1. Create a [WebCoverageService](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/model/index.html#wcs.service.WebCoverageService)
+1. Create a [WebCoverageService](https://rasdaman.github.io/wcs-python-client/autoapi/wcs/service/index.html#wcs.service.WebCoverageService)
    object. Optionally, a username and a password may be specified, if the endpoint requires them.
 
 ```python
