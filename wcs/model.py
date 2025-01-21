@@ -192,7 +192,7 @@ class BoundingBox:
         according to the specified ``index``. The ``index`` can be an
         axis name, or an index of the axes list.
         :raise KeyError: if the axis name is not found, the axis index
-            out of bounds, or the ``index`` is not an int or string.
+            is out of bounds, or the ``index`` is not an int or string.
         """
         if isinstance(index, int):
             return self.axes[index]
@@ -206,6 +206,16 @@ class BoundingBox:
 
         raise KeyError(f"Axis index has an invalid type {index.__class__},"
                        f"expected a string or int.")
+
+    def __getattr__(self, item):
+        """
+        Get the :class:`Axis` object from the :attr:`axes` list
+        according to the specified ``item``. The ``item`` can be an
+        axis name, or an index of the axes list.
+        :raise KeyError: if the axis name is not found, the axis index
+            is out of bounds, or the ``item`` is not an int or string.
+        """
+        return self.__getitem__(item)
 
 
 @dataclass
@@ -243,7 +253,7 @@ class RangeType:
         according to the specified ``index``. The ``index`` can be a
         field (band) name, or an index of the fields list.
         :raise KeyError: if the field name is not found, the fields index
-            out of bounds, or the ``index`` is not an int or string.
+            is out of bounds, or the ``index`` is not an int or string.
         """
         if isinstance(index, int):
             return self.fields[index]
@@ -257,6 +267,16 @@ class RangeType:
 
         raise KeyError(f"Field index has an invalid type {index.__class__},"
                        f"expected a string or int.")
+
+    def __getattr__(self, item):
+        """
+        Get the :class:`Field` object from the :attr:`fields` list
+        according to the specified ``item``. The ``item`` can be a
+        field (band) name, or an index of the fields list.
+        :raise KeyError: if the field name is not found, the fields index
+            is out of bounds, or the ``item`` is not an int or string.
+        """
+        return self.__getitem__(item)
 
 
 @dataclass

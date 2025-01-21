@@ -44,6 +44,7 @@ def test_list_coverages():
       crs: EPSG:4326
   size in bytes: 4809618404'''
     assert str(cov) == expected
+    assert cov.bbox.ansi.crs == 'https://www.opengis.net/def/crs/OGC/0/AnsiDate'
 
 
 def test_list_full_info():

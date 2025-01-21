@@ -108,19 +108,18 @@ print(Crs.to_short_notation(bbox.crs))
 # get information for the first axis; as it is a temporal axis,
 # the lower_bound and upper_bound are datetime.datetime objects.
 
-axis = bbox[0]
+axis = bbox.ansi
+
+# note that these are all equivalent:
+# axis = bbox['ansi']
+# axis = bbox.0
+# axis = bbox[0]
+
 name = axis.name
 lower_bound = axis.low
 upper_bound = axis.high
 print(f'{name}({lower_bound} - {upper_bound})')
 # ansi(2000-02-01 00:00:00+00:00 - 2015-06-01 00:00:00+00:00)
-
-# get information for the Lat axis
-
-axis = bbox['Lat']
-print(axis.name)
-
-# Lat
 
 # get size in bytes if available
 
@@ -223,7 +222,12 @@ for full details.
 ```python
 range_type = full_avg_land_temp.range_type
 all_fields = range_type.fields
-field = range_type['Gray']  # or range_type[0]
+field = range_type.Gray
+
+# note that these are all equivalent:
+# field = range_type['Gray']
+# field = range_type.0
+# field = range_type[0]
 
 # get all properties of the field
 
