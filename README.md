@@ -7,6 +7,9 @@ defines support for modeling and retrieval of geospatial data as coverages
 This Python library allows to extract information about WCS coverages from a
 given WCS endpoint.
 
+Note that downloading raster data is not supported. This can be done with
+the [WCPS Python Client](https://rasdaman.github.io/wcps-python-client/).
+
 # Installation
 
     pip install wcs
@@ -272,3 +275,9 @@ make html
 ```
 
 The built documentation can be found in the `docs/_build/html/` subdir.
+
+
+# Acknowledgments
+
+Created in project [EU FAIRiCUBE](https://fairicube.nilu.no/), with funding from the 
+Horizon Europe programme under grant agreement No 101059238.
