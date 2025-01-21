@@ -128,3 +128,5 @@ def test_list_full_info():
       "covMetadata": null
     }'''
     assert str(cov) == expected
+    subset = cov.bbox.ansi["2006-08-01" : "2007-01-01"]
+    assert len(subset) == 6

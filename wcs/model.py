@@ -110,6 +110,10 @@ class Axis:
     """
     An axis with a name, low/upper bounds, a CRS, uom, resolution, coefficients.
 
+    A subset of the coefficients (axis coordinates) can be retrieved with the [] operator,
+    e.g. for an irregular temporal axis: axis["2024-01-01" : "2024-01-31"].
+    See :meth:`__getitem__` for more details.
+
     :param name: Name of the axis.
     :param low: Lower bound of the axis.
     :param high: Upper bound of the axis.
@@ -153,6 +157,102 @@ class Axis:
             # remove the initial_indent which was added only to make sure the table width is consistent
             coefficients = coefficients.strip()
             ret += f'{indent}coefficients: {coefficients}'
+        return ret
+
+    def is_temporal(self) -> bool:
+        """
+        Returns: True if this axis is a temporal axis (e.g. ansi), False otherwise.
+        """
+        return isinstance(self.low, datetime)
+
+    def is_spatial(self) -> bool:
+        """
+        Returns: True if this axis is a spatial axis (e.g. Lat, Lon, E, N), False otherwise.
+        """
+        return not self.is_temporal()
+
+    def is_irregular(self) -> bool:
+        """
+        Returns: True if this axis is an irregular axis, False otherwise.
+        """
+        return self.coefficients is not None and len(self.coefficients) > 0
+
+    def is_regular(self) -> bool:
+        """
+        Returns: True if this axis is a regular axis, False otherwise.
+        """
+        return self.resolution is not None
+
+    def __getitem__(self, item) -> list[BoundType]:
+        """
+        - If :attr:`coefficients` is not None, then they are subsetted according to ``item``
+        - Otherwise, a list of coefficients is generated according to the :attr:`resolution`,
+          between the start and stop provided by the item slice.
+
+        :param item: must be a :class:`slice` object with a start and stop set;
+            the step is ignored. The start and stop must be valid coordinates in the
+            axis :attr:`crs` and within the :attr:`low` / :attr:`high` bounds of this object.
+
+        :raises WCSClientException:
+            - if :attr:`coefficients` and :attr:`resolution` are both None.
+            - if ``item`` is not a slice object
+            - if the start / stop of ``item`` are invalid coordinates
+        """
+        if not isinstance(item, slice):
+            raise WCSClientException(f"Invalid coordinates provided for operator [] "
+                                     f"on axis {self.name}, expected a slice of the form start:stop.")
+        if item.stop is None:
+            raise WCSClientException(f"No upper limit provided for operator [] on axis {self.name}.")
+
+        temporal = self.is_temporal()
+        regular = self.is_regular()
+        irregular = self.is_irregular()
+
+        if not regular and not irregular:
+            raise WCSClientException(f"operator [] is inapplicable to axis {self.name} "
+                                     f"without a resolution or coefficients.")
+        if temporal and not irregular:
+            raise WCSClientException(f"operator [] is inapplicable to regular "
+                                     f"temporal axis {self.name}.")
+
+        start = item.start
+        stop = item.stop
+
+        # parse string datetime to datetimes if needed, and make sure all datetime have the same tzinfo
+        if temporal:
+            tz = self.coefficients[0].tzinfo
+            if isinstance(start, str):
+                start = datetime.fromisoformat(start)
+            elif not isinstance(start, datetime):
+                raise WCSClientException(f"Invalid type of start coordinate provided for operator [] "
+                                         f"on axis {self.name}, expected either a string or a datetime.")
+            if isinstance(stop, str):
+                stop = datetime.fromisoformat(stop).replace(tzinfo=tz)
+            elif not isinstance(stop, datetime):
+                raise WCSClientException(f"Invalid type of stop coordinate provided for operator [] "
+                                         f"on axis {self.name}, expected either a string or a datetime.")
+            start = start.replace(tzinfo=tz)
+            stop = stop.replace(tzinfo=tz)
+
+        coefficients = self.get_coefficients()
+        return [c for c in coefficients if start <= c <= stop]
+
+    def get_coefficients(self) -> list[BoundType]:
+        """
+        :return: a list of coefficients, automatically generated if this
+            is a regular axis.
+        """
+        if self.is_irregular():
+            return self.coefficients
+        if not self.is_regular():
+            raise WCSClientException(f"{self.name} is not a regular or irregular "
+                                     f"axis, cannot calculate coefficients.")
+
+        ret = []
+        current = self.low
+        while current <= self.high:
+            ret.append(current)
+            current += self.resolution
         return ret
 
 
