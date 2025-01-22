@@ -57,9 +57,11 @@ class WebCoverageService:
         self.version = "2.1.0"
         self.service = "WCS"
 
-    def list_coverages(self) -> dict[str, BasicCoverage]:
+    def list_coverages(self, only_local: bool = False) -> dict[str, BasicCoverage]:
         """
         Retreives the available coverages from the WCS server with a GetCapabilities request.
+
+        :param only_local: list only local coverages, filtering out any remote coverages.
 
         :return: a dict of (coverage name, :class:`wcs.model.BasicCoverage`) pairs
             for each available coverage.
@@ -69,7 +71,7 @@ class WebCoverageService:
         params = {'service': self.service,
                   'request': 'GetCapabilities'}
         response = self._send_request(params)
-        coverages = parse_coverage_summaries(response.text)
+        coverages = parse_coverage_summaries(response.text, only_local)
         return {cov.name: cov for cov in coverages}
 
     def list_full_info(self, coverage_name) -> FullCoverage:

@@ -47,6 +47,18 @@ def test_list_coverages():
     assert cov.bbox.ansi.crs == 'https://www.opengis.net/def/crs/OGC/0/AnsiDate'
 
 
+def test_list_coverages_only_local():
+    service = WebCoverageService("https://fairicube.rasdaman.com/rasdaman/ows")
+    coverages = service.list_coverages(only_local=True)
+    assert all(cov.is_local() for k, cov in coverages.items())
+
+
+def test_list_coverages_all():
+    service = WebCoverageService("https://fairicube.rasdaman.com/rasdaman/ows")
+    coverages = service.list_coverages()
+    assert not all(cov.is_local() for k, cov in coverages.items())
+
+
 def test_list_full_info():
     service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
     cov = service.list_full_info('AvgLandTemp')
@@ -124,9 +136,15 @@ def test_list_full_info():
       nil values: 99999
       uom: 10^0
   metadata:
-    {
-      "covMetadata": null
-    }'''
+    covMetadata: None
+'''
     assert str(cov) == expected
     subset = cov.bbox.ansi["2006-08-01" : "2007-01-01"]
     assert len(subset) == 6
+    assert cov.is_local()
+
+def test_list_full_info2():
+    service = WebCoverageService("https://fairicube.rasdaman.com/rasdaman/ows")
+    cov = service.list_full_info('dominant_leaf_type_20m')
+    catalog_link = cov.metadata['fairicubeMetadata']['@href']
+    assert catalog_link == "https://stacapi.eoxhub.fairicube.eu/collections/index/items/dominant_leaf_type_20m"

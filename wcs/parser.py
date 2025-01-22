@@ -319,7 +319,7 @@ def parse_metadata(metadata_element: Optional[ET]) -> dict:
 # GetCapabilities
 # ---------------------------------------------------------------------------------------
 
-def parse_coverage_summaries(xml_string: Union[str, bytes]) -> list[BasicCoverage]:
+def parse_coverage_summaries(xml_string: Union[str, bytes], only_local: bool = False) -> list[BasicCoverage]:
     """
     Parses CoverageSummary XML elements from a GetCapabilities XML string.
 
@@ -331,6 +331,7 @@ def parse_coverage_summaries(xml_string: Union[str, bytes]) -> list[BasicCoverag
 
     :param xml_string: A GetCapabilities XML string, provided as either a
                        string or bytes object.
+    :param only_local: parse only local coverages, filtering out any remote coverages.
     :return: A list of BasicCoverage objects, each representing a parsed
              CoverageSummary element from the XML.
     :raises WCSClientException: If the XML does not contain a 'Contents'
@@ -351,12 +352,14 @@ def parse_coverage_summaries(xml_string: Union[str, bytes]) -> list[BasicCoverag
     ret = []
 
     for coverage_summary in contents:
-        ret.append(parse_coverage_summary(coverage_summary))
+        cov = parse_coverage_summary(coverage_summary, only_local=only_local)
+        if cov is not None:
+            ret.append(cov)
 
     return ret
 
 
-def parse_coverage_summary(element: Optional[ET]) -> Optional[BasicCoverage]:
+def parse_coverage_summary(element: Optional[ET], only_local: bool = False) -> Optional[BasicCoverage]:
     """
     Parses an XML element representing a Coverage Summary into a BasicCoverage object.
     Example XML structure:
@@ -399,8 +402,9 @@ def parse_coverage_summary(element: Optional[ET]) -> Optional[BasicCoverage]:
     :param element: An XML element representing a CoverageSummary.
         it should contain 'CoverageId' and a 'CoverageSubtype', and optionally
         'WGS84BoundingBox', 'BoundingBox', and 'AdditionalParameters'.
+    :param only_local: parse only local coverages, filtering out any remote coverages.
     :return: A BasicCoverage object containing coverage information extracted from the XML,
-        or None if ``element`` is None.
+        or None if ``element`` is None or ``only_local`` is True and the coverage is remote.
     :raises WCSClientException: If the coverage_summary_element does not have the
                                 expected tag, or is missing a 'CoverageId' element.
     """
@@ -415,6 +419,8 @@ def parse_coverage_summary(element: Optional[ET]) -> Optional[BasicCoverage]:
         tag = parse_tag_name(e)
         if tag == 'CoverageId':
             name = e.text
+            if only_local and '--' in name:
+                return None
         elif tag == 'CoverageSubtype':
             subtype = e.text
         elif tag == 'WGS84BoundingBox':
@@ -745,7 +751,7 @@ def first_child(element: ET, expected_tag: str = None) -> Optional[ET]:
     raise WCSClientException(f'Element {parse_tag_name(element)} has no child element.')
 
 
-def parse_tag_name(element: ET) -> str:
+def parse_tag_name(element: Union[ET, str]) -> str:
     """
     Extract just the tag name of an XML element, removing namespace components.
     Example: "{http://www.example.com}root" -> "root"
@@ -753,7 +759,12 @@ def parse_tag_name(element: ET) -> str:
     :param element: An XML element from which to extract the tag name.
     :return: The tag name of the element.
     """
-    return element.tag.split('}')[-1]
+    if isinstance(element, ET.Element):
+        element = element.tag
+    elif not isinstance(element, str):
+        raise WCSClientException(f"Cannot parse tag name, but expected xml.etree.ElementTree.Element"
+                                 f" or string argument, but got {element.__class__}.")
+    return element.split('}')[-1]
 
 
 def validate_tag_name(element: ET, expected_tag: str):
@@ -813,7 +824,7 @@ def element_to_dict(t: ET) -> dict:
                 dd[k].append(v)
         d = {tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
     if t.attrib:
-        d[tag].update(('@' + k, v) for k, v in t.attrib.items())
+        d[tag].update(('@' + parse_tag_name(k), v) for k, v in t.attrib.items())
     if t.text:
         text = t.text.strip()
         if children or t.attrib:

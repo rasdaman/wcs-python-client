@@ -6,7 +6,7 @@ Classes holding information about coverages on a WCS server.
 # https://stackoverflow.com/a/33533514
 from __future__ import annotations
 
-import json
+import re
 import textwrap
 from dataclasses import dataclass
 from datetime import datetime
@@ -63,8 +63,21 @@ class BasicCoverage:
         if self.size_bytes is not None:
             ret += f'\n  size in bytes: {self.size_bytes}'
         if self.additional_params is not None and len(self.additional_params) > 0:
-            ret += f'\n  additional params: {self.additional_params}'
+            additional_params = _dict_to_yaml(self.additional_params, 4)
+            ret += f'\n  additional params: {additional_params}'
         return ret
+
+    def is_local(self) -> bool:
+        """
+        :return: True if the coverage is local on the server, False if it's remote.
+        """
+        return '--' not in self.name
+
+    def is_remote(self) -> bool:
+        """
+        :return: True if the coverage is not local on the server, False otherwise.
+        """
+        return not self.is_local()
 
 
 @dataclass
@@ -99,10 +112,22 @@ class FullCoverage:
         if self.range_type is not None:
             ret += f'\n{self.range_type}'
         if len(self.metadata) > 0:
-            metadata = json.dumps(self.metadata, indent=2)
+            metadata = _dict_to_yaml(self.metadata)
             metadata = textwrap.indent(metadata, ' ' * 4)
             ret += f'\n  metadata:\n{metadata}'
         return ret
+
+    def is_local(self) -> bool:
+        """
+        :return: True if the coverage is local on the server, False if it's remote.
+        """
+        return '--' not in self.name
+
+    def is_remote(self) -> bool:
+        """
+        :return: True if the coverage is not local on the server, False otherwise.
+        """
+        return not self.is_local()
 
 
 @dataclass
@@ -426,7 +451,7 @@ class Field:
         indent = '\n    '
         ret = f'{indent}{self.name}:'
         indent += '  '
-        ret += f'{indent}type: ' + 'Quantity' if self.is_quantity else 'Category'
+        ret += f'{indent}type: ' + ('Quantity' if self.is_quantity else 'Category')
         if self.label is not None:
             ret += f'{indent}label: {self.label}'
         if self.description is not None:
@@ -560,3 +585,47 @@ def _list_to_str(lst: list, sep: str) -> str:
              specified separator.
     """
     return sep.join([str(item) for item in lst])
+
+
+_SPECIAL_CHARS_PATTERN = re.compile(r'[\s:{}\[\]()*&|><#%@,?\\=!]')
+
+
+def _dict_to_yaml(d, indent=0):
+    """
+    Convert a nested Python dictionary to a YAML-formatted string.
+
+    This function recursively traverses a Python dictionary, including any nested
+    dictionaries and lists, and formats it into a YAML string. The resulting string
+    maintains the hierarchical structure of the input dictionary, with appropriate
+    indentation for nested elements.
+
+    :param d: The dictionary to be converted into YAML format. It can contain nested
+              dictionaries and lists.
+    :param indent: The current level of indentation. This parameter is used
+                   internally by the function for recursive calls to manage
+                   indentation. Default is 0.
+
+    :return: A string representing the input dictionary in YAML format.
+    """
+    yaml_str = ""
+    for key, value in d.items():
+        # quote the key if needed
+        if any(c in key for c in ' \t') or \
+            _SPECIAL_CHARS_PATTERN.search(key) or \
+            any(ord(c) < 32 for c in key) or \
+            key[0].isdigit():
+            key = '"' + key + '"'
+
+        if isinstance(value, dict):
+            yaml_str += " " * indent + str(key) + ":\n" + _dict_to_yaml(value, indent + 2)
+        elif isinstance(value, list):
+            yaml_str += " " * indent + str(key) + ":\n"
+            for item in value:
+                yaml_str += " " * (indent + 2) + "- "
+                if isinstance(item, dict):
+                    yaml_str += "\n" + _dict_to_yaml(item, indent + 4)
+                else:
+                    yaml_str += str(item) + "\n"
+        else:
+            yaml_str += " " * indent + str(key) + ": " + str(value) + "\n"
+    return yaml_str
