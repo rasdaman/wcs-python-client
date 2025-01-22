@@ -1,0 +1,427 @@
+wcs.model
+=========
+
+.. py:module:: wcs.model
+
+.. autoapi-nested-parse::
+
+   Classes holding information about coverages on a WCS server.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   wcs.model.BoundType
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   wcs.model.WCSClientException
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   wcs.model.BasicCoverage
+   wcs.model.FullCoverage
+   wcs.model.Axis
+   wcs.model.BoundingBox
+   wcs.model.RangeType
+   wcs.model.Field
+   wcs.model.NilValue
+   wcs.model.Crs
+
+
+Module Contents
+---------------
+
+.. py:data:: BoundType
+
+   Type for axis interval bounds.
+
+
+.. py:class:: BasicCoverage(name, subtype = None, bbox = None, lon_lat = None, size_bytes = None, additional_params = None)
+
+   Holds basic coverage information extracted from the WCS GetCapabilities
+   document, notably the WGS bounding box if provided.
+
+   :param name: the coverage name.
+   :param subtype: coverage subtype, e.g. 'ReferenceableGridCoverage'
+   :param bbox: bounding box in native CRS
+   :param lon_lat: a tuple of longitude / latitude axes respresenting the
+       WGS84 bounding box of the coverage
+   :param size_bytes: coverage size in bytes; None if not reported by the server
+   :param additional_params: additional key/value parameters
+
+
+   .. py:attribute:: name
+
+      Coverage name
+
+
+
+   .. py:attribute:: subtype
+      :value: None
+
+
+      Coverage subtype, e.g. ReferenceableGridCoverage
+
+
+
+   .. py:attribute:: bbox
+      :value: None
+
+
+      Bounding box of all coverage axes in native CRS
+
+
+
+   .. py:attribute:: size_bytes
+      :value: None
+
+
+      Coverage size in bytes; None if not reported by the server
+
+
+
+   .. py:attribute:: additional_params
+      :value: None
+
+
+      A dictionary of additional key/value parameters if reported by the server
+
+
+
+   .. py:method:: is_local()
+
+      :return: True if the coverage is local on the server, False if it's remote.
+
+
+
+   .. py:method:: is_remote()
+
+      :return: True if the coverage is not local on the server, False otherwise.
+
+
+
+.. py:class:: FullCoverage(name, bbox, grid_bbox, range_type, metadata = None)
+
+   Holds full coverage information extracted from the WCS DescribeCoverage.
+
+   :param name: the coverage name.
+   :param bbox: bounding box in native CRS
+   :param grid_bbox: grid bounding box
+   :param range_type: coverage range type
+
+
+   .. py:attribute:: name
+
+
+   .. py:attribute:: bbox
+
+
+   .. py:attribute:: grid_bbox
+
+
+   .. py:attribute:: range_type
+
+
+   .. py:attribute:: metadata
+
+
+   .. py:method:: is_local()
+
+      :return: True if the coverage is local on the server, False if it's remote.
+
+
+
+   .. py:method:: is_remote()
+
+      :return: True if the coverage is not local on the server, False otherwise.
+
+
+
+.. py:class:: Axis
+
+   An axis with a name, low/upper bounds, a CRS, uom, resolution, coefficients.
+
+   A subset of the coefficients (axis coordinates) can be retrieved with the [] operator,
+   e.g. for an irregular temporal axis: axis["2024-01-01" : "2024-01-31"].
+   See :meth:`__getitem__` for more details.
+
+   :param name: Name of the axis.
+   :param low: Lower bound of the axis.
+   :param high: Upper bound of the axis.
+   :param crs: Coordinate Reference System, e.g., "EPSG:4326".
+   :param uom: Unit of measure, e.g., "degree".
+   :param resolution: Axis resolution, for regular axes.
+   :param coefficients: Axis coefficients for irregular axes.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: low
+      :type:  BoundType
+
+
+   .. py:attribute:: high
+      :type:  BoundType
+
+
+   .. py:attribute:: crs
+      :type:  Optional[str]
+      :value: None
+
+
+
+   .. py:attribute:: uom
+      :type:  Optional[str]
+      :value: None
+
+
+
+   .. py:attribute:: resolution
+      :type:  Optional[BoundType]
+      :value: None
+
+
+
+   .. py:attribute:: coefficients
+      :type:  Optional[list[BoundType]]
+      :value: None
+
+
+
+   .. py:method:: is_temporal()
+
+      Returns: True if this axis is a temporal axis (e.g. ansi), False otherwise.
+
+
+
+   .. py:method:: is_spatial()
+
+      Returns: True if this axis is a spatial axis (e.g. Lat, Lon, E, N), False otherwise.
+
+
+
+   .. py:method:: is_irregular()
+
+      Returns: True if this axis is an irregular axis, False otherwise.
+
+
+
+   .. py:method:: is_regular()
+
+      Returns: True if this axis is a regular axis, False otherwise.
+
+
+
+   .. py:method:: get_coefficients()
+
+      :return: a list of coefficients, automatically generated if this
+          is a regular axis.
+
+
+
+.. py:class:: BoundingBox(axes, crs)
+
+   The bounding box of a coverage, containing low/high limits of all its axes.
+
+   The axes can be accessed through the :attr:`axes` attribute, or through
+   the subscript operator, e.g.
+
+   .. code:: python
+
+       bbox[1]      # get the second axis
+       bbox['Lat']  # get the axis with name Lat
+
+   :param crs: native CRS of the axis coordinates
+   :param axes: a list of :class:`Axis` objects
+
+
+   .. py:attribute:: axes
+
+
+   .. py:attribute:: crs
+
+
+.. py:class:: RangeType(fields)
+
+   Represents the range type of a coverage, indicating the structure of the data.
+
+   The range type consists of a list of field types (:class:`Field`).
+   The fields can be accessed through the :attr:`fields` attribute, or through
+   the subscript operator, e.g.
+
+   .. code:: python
+
+       range_type[1]      # get the second field
+       range_type['blue']  # get the field with name blue
+
+   :param fields: A list of :class:`Field` objects describing the fields (also
+                  known as bands or channels) of a coverage.
+
+
+   .. py:attribute:: fields
+      :type:  list[Field]
+
+      A list of :class:`Field` objects corresponding to the bands of the coverage.
+
+
+
+.. py:class:: Field
+
+   A field (also known as band, or channel) in a coverage range type (:class:`RangeType`)
+
+   It can be either a quantity or a category. It includes information about the
+   field's name, definition, label, description, codespace (only Category),
+   unit of measure (only Quantity), and any nil values.
+
+   :param name: The name of the field. This can be used to subset bands in
+       WCS GetCoverage requests or WCPS queries.
+   :param is_quantity: Indicates whether this field is a Quantity (:code:`True`)
+       or a Category (:code:`False`). Defaults to :code:`True`.
+   :param definition: A URI that can be resolved to the complete human-readable
+       definition of the property that is represented by the data component.
+   :param label: Short human-readable information about the data component.
+   :param description: A human-readable description of the data.
+   :param codespace: A URL to an external dictionary, taxonomy, or ontology
+       representing the code space. This attribute is only set for category data,
+       i.e., when :attr:`is_quantity` is :code:`False`.
+   :param uom: The unit of measure for this data.
+   :param nil_values: A list of nil values associated with this field.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+      Field name that can be used to subset bands in WCS GetCoverage or WCPS queries.
+
+
+
+   .. py:attribute:: is_quantity
+      :type:  bool
+      :value: True
+
+
+      True if this field is a Quantity, False if it's a Category.
+
+
+
+   .. py:attribute:: definition
+      :type:  str
+      :value: None
+
+
+      A URI that can be resolved to the complete human readable definition of the
+      property that is represented by the data component.
+
+
+
+   .. py:attribute:: label
+      :type:  str
+      :value: None
+
+
+      Short human readable information about the data component.
+
+
+
+   .. py:attribute:: description
+      :type:  str
+      :value: None
+
+
+      Human-readable description of the data.
+
+
+
+   .. py:attribute:: codespace
+      :type:  str
+      :value: None
+
+
+      URL to an external dictionary, taxonomy or ontology representing the code space.
+      Only set for category data, i.e. :attr:`is_quantity` is False.
+
+
+
+   .. py:attribute:: uom
+      :type:  str
+      :value: None
+
+
+      Unit of measure for this data.
+
+
+
+   .. py:attribute:: nil_values
+      :type:  list[NilValue]
+      :value: None
+
+
+      A list of nil values.
+
+
+
+.. py:class:: NilValue
+
+   Represents a null value with an optional reason.
+
+   :param nil_value: The null value itself, represented as a string.
+   :param reason: An optional explanation for why the value is null.
+       This is useful for providing context or documentation about the null
+       value.
+
+
+   .. py:attribute:: nil_value
+      :type:  str
+
+
+   .. py:attribute:: reason
+      :type:  Optional[str]
+
+
+.. py:class:: Crs
+
+   Utility class for handling CRS.
+
+
+   .. py:method:: to_short_notation(url)
+      :staticmethod:
+
+
+      Parse CRS identifiers in `this notation
+      <https://doc.rasdaman.org/05_geo-services-guide.html#crs-notation>`_.
+
+      :param url: a CRS identifier, e.g.
+
+          - http://localhost:8080/rasdaman/def/crs/EPSG/0/4326
+          - EPSG/0/4326
+          - EPSG:4326
+
+      :return: Short CRS notation, e.g. EPSG:4326; None if input is None or the method
+          fails to parse the url.
+
+
+
+.. py:exception:: WCSClientException
+
+   Bases: :py:obj:`Exception`
+
+
+   An exception thrown by this library.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+

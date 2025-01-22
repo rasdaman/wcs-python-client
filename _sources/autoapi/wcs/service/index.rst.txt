@@ -1,0 +1,124 @@
+wcs.service
+===========
+
+.. py:module:: wcs.service
+
+.. autoapi-nested-parse::
+
+   List all coverages, or get full information about a particular coverage
+   from a WCS endpoint.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   wcs.service.DEFAULT_CONN_TIMEOUT
+   wcs.service.DEFAULT_READ_TIMEOUT
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   wcs.service.WebCoverageService
+
+
+Module Contents
+---------------
+
+.. py:data:: DEFAULT_CONN_TIMEOUT
+   :value: 10
+
+
+   Default timeout to establish a connection to the WCS service: 10 seconds.
+
+
+.. py:data:: DEFAULT_READ_TIMEOUT
+   :value: 600
+
+
+   Default timeout to wait for a query to execute: 10 minutes.
+
+
+.. py:class:: WebCoverageService(endpoint, username = None, password = None, conn_timeout = DEFAULT_CONN_TIMEOUT, read_timeout = DEFAULT_READ_TIMEOUT)
+
+   Establish a connection to a WCS service, send requests and retrieve results.
+
+   :param endpoint: the WCS server endpoint URL, e.g. https://ows.rasdaman.org/rasdaman/ows
+   :param username: optional username for basic authentication to the WCS server
+   :param password: optional password for basic authentication to the WCS server
+   :param conn_timeout: how long (seconds) to wait for the connection to be established
+   :param read_timeout: how long (seconds) to wait for the query to execute
+
+   Example usage:
+
+   .. code:: python
+
+       service = WebCoverageService(
+           "https://ows.rasdaman.org/rasdaman/ows")
+
+       coverages = service.list_coverages()
+       avg_land_temp = coverages['AvgLandTemp']
+
+       full_avg_land_temp = service.list_full_info('AvgLandTemp')
+
+
+   .. py:attribute:: endpoint
+
+
+   .. py:attribute:: auth
+      :value: None
+
+
+      Map of coverage objects retreived from the ``endpoint``, as (name, coverage) pairs.
+
+
+
+   .. py:attribute:: conn_timeout
+      :value: 10
+
+
+
+   .. py:attribute:: read_timeout
+      :value: 600
+
+
+
+   .. py:attribute:: version
+      :value: '2.1.0'
+
+
+
+   .. py:attribute:: service
+      :value: 'WCS'
+
+
+
+   .. py:method:: list_coverages(only_local = False)
+
+      Retreives the available coverages from the WCS server with a GetCapabilities request.
+
+      :param only_local: list only local coverages, filtering out any remote coverages.
+
+      :return: a dict of (coverage name, :class:`wcs.model.BasicCoverage`) pairs
+          for each available coverage.
+
+      :raise WCSClientException: if resolving the GetCapabilities or parsing it fails.
+
+
+
+   .. py:method:: list_full_info(coverage_name)
+
+      Retrieve full information of coverage ``nacoverage_nameme`` with a
+      DescribeCoverage request.
+
+      :param coverage_name: coverage name to lookup
+      :raise WCSClientException: if the coverage does not exist, or its
+          DescribeCoverage document fails to parse.
+
+
+
