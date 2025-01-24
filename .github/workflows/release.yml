@@ -74,17 +74,22 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
     - name: Download all the dists
       uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
+
     - name: Sign the dists with Sigstore
       uses: sigstore/gh-action-sigstore-python@v3.0.0
       with:
         inputs: >-
           ./dist/*.tar.gz
           ./dist/*.whl
+
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -92,7 +97,8 @@ jobs:
         gh release create
         "$GITHUB_REF_NAME"
         --repo "$GITHUB_REPOSITORY"
-        --notes ""
+        --generate-notes
+        
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
