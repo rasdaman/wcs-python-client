@@ -83,6 +83,28 @@ jobs:
         name: python-package-distributions
         path: dist/
 
+    - name: Find the previous release tag
+      id: previous_release_tag
+      run: |
+        LAST_TAG=$(git describe --tags --match 'v[0-9]*.[0-9]*.[0-9]*' --abbrev=0)
+        if [ -n "$LAST_TAG" ]; then
+          PREV_TAG=$(git describe --tags --match 'v[0-9]*.[0-9]*.[0-9]*' --abbrev=0 "$LAST_TAG^")
+        else
+          PREV_TAG=""
+        fi
+        echo "PREV_TAG=$PREV_TAG" >> $GITHUB_ENV
+
+    - name: Generate release summary
+      id: release_summary
+      run: |
+        if [ -z "$PREV_TAG" ]; then
+          echo "No previous release tag found. Starting from the beginning."
+          SUMMARY=$(git log --pretty=format:"%B" --no-merges | grep -v '^$' | sed '/^-/!s/^/- /')
+        else
+          SUMMARY=$(git log --pretty=format:"%B" --no-merges "$PREV_TAG..HEAD^" | grep -v '^$' | sed '/^-/!s/^/- /')
+        fi
+        echo "RELEASE_SUMMARY=$SUMMARY" >> $GITHUB_ENV
+
     - name: Sign the dists with Sigstore
       uses: sigstore/gh-action-sigstore-python@v3.0.0
       with:
@@ -97,7 +119,7 @@ jobs:
         gh release create
         "$GITHUB_REF_NAME"
         --repo "$GITHUB_REPOSITORY"
-        --generate-notes
+        --notes "$RELEASE_SUMMARY"
         
     - name: Upload artifact signatures to GitHub Release
       env:
