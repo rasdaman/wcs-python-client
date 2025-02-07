@@ -59,12 +59,12 @@ class BasicCoverage:
         if self.bbox is not None:
             ret += f'\n{self.bbox}'
         if self.lon is not None:
-            ret += f'\n  lon/lat bbox:{self.lon}{self.lat}'
+            ret += f'\n  WGS84 bbox:{self.lon}{self.lat}'
         if self.size_bytes is not None:
             ret += f'\n  size in bytes: {self.size_bytes}'
         if self.additional_params is not None and len(self.additional_params) > 0:
             additional_params = _dict_to_yaml(self.additional_params, 4)
-            ret += f'\n  additional params: {additional_params}'
+            ret += f'\n  additional params:\n{additional_params}'
         return ret
 
     def is_local(self) -> bool:
@@ -159,8 +159,8 @@ class Axis:
         indent = '\n    '
         ret = f'{indent}{self.name}:'
         indent += '  '
-        ret += f'{indent}min: {_bound_to_str(self.low)}'
-        ret += f'{indent}max: {_bound_to_str(self.high)}'
+        ret += f'{indent}low: {_bound_to_str(self.low)}'
+        ret += f'{indent}high: {_bound_to_str(self.high)}'
         if self.crs is not None:
             ret += f'{indent}crs: {Crs.to_short_notation(self.crs)}'
         if self.uom is not None:
@@ -303,12 +303,12 @@ class BoundingBox:
         self.crs = crs
 
     def __str__(self):
-        bbox_type = 'grid'
+        bbox_type = 'grid_bbox'
         ret = ''
         if self.crs is not None:
-            ret += f'  native CRS: {Crs.to_short_notation(self.crs)}\n'
-            bbox_type = 'geo'
-        ret += f'  {bbox_type} bbox:{_list_to_str(self.axes, "")}'
+            ret += f'  crs: {Crs.to_short_notation(self.crs)}\n'
+            bbox_type = 'bbox'
+        ret += f'  {bbox_type}:{_list_to_str(self.axes, "")}'
         return ret
 
     def __getitem__(self, index: Union[int, str]) -> Axis:
@@ -369,7 +369,7 @@ class RangeType:
 
     def __str__(self):
         fields = _list_to_str(self.fields, '')
-        ret = f'  range type fields:{fields}'
+        ret = f'  range_type:{fields}'
         return ret
 
     def __getitem__(self, index: Union[int, str]) -> Field:
@@ -459,7 +459,7 @@ class Field:
         if self.definition is not None:
             ret += f'{indent}definition: {self.definition}'
         if self.nil_values is not None and len(self.nil_values) > 0:
-            ret += f'{indent}nil values: {_list_to_str(self.nil_values, ",")}'
+            ret += f'{indent}nil_values: {_list_to_str(self.nil_values, ",")}'
         if self.codespace is not None:
             ret += f'{indent}codespace: {self.codespace}'
         if self.uom is not None:

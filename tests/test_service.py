@@ -19,28 +19,28 @@ def test_list_coverages():
     cov = coverages['AvgLandTemp']
     expected = '''AvgLandTemp:
   subtype: ReferenceableGridCoverage
-  native CRS: OGC:AnsiDate+EPSG:4326
-  geo bbox:
+  crs: OGC:AnsiDate+EPSG:4326
+  bbox:
     ansi:
-      min: "2000-02-01"
-      max: "2015-06-01"
+      low: "2000-02-01"
+      high: "2015-06-01"
       crs: OGC:AnsiDate
     Lat:
-      min: -90
-      max: 90
+      low: -90
+      high: 90
       crs: EPSG:4326
     Lon:
-      min: -180
-      max: 180
+      low: -180
+      high: 180
       crs: EPSG:4326
-  lon/lat bbox:
+  WGS84 bbox:
     Lon:
-      min: -180
-      max: 180
+      low: -180
+      high: 180
       crs: EPSG:4326
     Lat:
-      min: -90
-      max: 90
+      low: -90
+      high: 90
       crs: EPSG:4326
   size in bytes: 4809618404'''
     assert str(cov) == expected
@@ -59,15 +59,23 @@ def test_list_coverages_all():
     assert not all(cov.is_local() for k, cov in coverages.items())
 
 
+# def test_list_coverages_readme():
+#     service = WebCoverageService("https://fairicube.rasdaman.com/rasdaman/ows")
+#     coverages = service.list_coverages()
+#     # cov = coverages['dominant_leaf_type_20m']
+#     cov = service.list_full_info('dominant_leaf_type_20m')
+#     print(cov)
+
+
 def test_list_full_info():
     service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
     cov = service.list_full_info('AvgLandTemp')
     expected = '''AvgLandTemp:
-  native CRS: OGC:AnsiDate+EPSG:4326
-  geo bbox:
+  crs: OGC:AnsiDate+EPSG:4326
+  bbox:
     ansi:
-      min: "2000-02-01"
-      max: "2015-06-01"
+      low: "2000-02-01"
+      high: "2015-06-01"
       crs: OGC:AnsiDate
       uom: d
       type: irregular
@@ -99,41 +107,41 @@ def test_list_full_info():
                      "2014-09-01", "2014-10-01", "2014-11-01", "2014-12-01", "2015-01-01", "2015-02-01", "2015-03-01",
                      "2015-04-01", "2015-05-01", "2015-06-01"]
     Lat:
-      min: -90
-      max: 90
+      low: -90
+      high: 90
       crs: EPSG:4326
       uom: degree
       resolution: -0.1
       type: regular
     Lon:
-      min: -180
-      max: 180
+      low: -180
+      high: 180
       crs: EPSG:4326
       uom: degree
       resolution: 0.1
       type: regular
-  grid bbox:
+  grid_bbox:
     i:
-      min: 0
-      max: 184
+      low: 0
+      high: 184
       resolution: 1
       type: regular
     j:
-      min: 0
-      max: 1799
+      low: 0
+      high: 1799
       resolution: 1
       type: regular
     k:
-      min: 0
-      max: 3599
+      low: 0
+      high: 3599
       resolution: 1
       type: regular
-  range type fields:
+  range_type:
     Gray:
       type: Quantity
       label: Gray
       definition: http://www.opengis.net/def/dataType/OGC/0/float32
-      nil values: 99999
+      nil_values: 99999
       uom: 10^0
   metadata:
     covMetadata: None

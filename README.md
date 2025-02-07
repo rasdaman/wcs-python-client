@@ -56,33 +56,33 @@ print(cov)
 ```yaml
 dominant_leaf_type_20m:
   subtype: ReferenceableGridCoverage
-  native CRS: OGC:AnsiDate+EPSG:3035
-  geo bbox:
+  crs: OGC:AnsiDate+EPSG:3035
+  bbox:
     time:
-      min: "2012-01-01"
-      max: "2015-01-01"
+      low: "2012-01-01"
+      high: "2015-01-01"
       crs: OGC:AnsiDate
     Y:
-      min: 900000
-      max: 5500000
+      low: 900000
+      high: 5500000
       crs: EPSG:3035
     X:
-      min: 900000
-      max: 7400000
+      low: 900000
+      high: 7400000
       crs: EPSG:3035
-  lon/lat bbox:
+  WGS84 bbox:
     Lon:
-      min: -56.50514190170437
-      max: 72.9061049341568
+      low: -56.50514190170437
+      high: 72.9061049341568
       crs: EPSG:4326
     Lat:
-      min: 24.28417068794856
-      max: 72.66326966834436
+      low: 24.28417068794856
+      high: 72.66326966834436
       crs: EPSG:4326
   size in bytes: 113000000001
   additional params:
     title: Dominant Leaf Type (2012-2015)
-    sizeInBytesWithPyramidLevels: "113000000001"
+    sizeInBytesWithPyramidLevels: 122417133472
 ```
 
 Examples for extracting individual details of the coverage:
@@ -153,62 +153,53 @@ cov = service.list_full_info('dominant_leaf_type_20m')
 
 print(cov)
 ```
-```yaml
-dominant_leaf_type_20m:
-  native CRS: OGC:AnsiDate+EPSG:3035
-  geo bbox:
+```yamldominant_leaf_type_20m:
+  crs: OGC:AnsiDate+EPSG:3035
+  bbox:
     time:
-      min: 2012-01-01
-      max: 2015-01-01
+      low: "2012-01-01"
+      high: "2015-01-01"
       crs: OGC:AnsiDate
       uom: d
       type: irregular
-      coefficients:
-        - 2012-01-01
-        - 2015-01-01
+      coefficients: ["2012-01-01", "2015-01-01"]
     Y:
-      min: 900000
-      max: 5500000
+      low: 900000
+      high: 5500000
       crs: EPSG:3035
       uom: metre
-      resolution: -20
+      resolution: -20.0
       type: regular
     X:
-      min: 900000
-      max: 7400000
+      low: 900000
+      high: 7400000
       crs: EPSG:3035
       uom: metre
-      resolution: 20
+      resolution: 20.0
       type: regular
-  grid bbox:
+  grid_bbox:
     i:
-      min: 0
-      max: 1
+      low: 0
+      high: 1
       resolution: 1
       type: regular
     j:
-      min: -125000
-      max: 104999
+      low: -125000
+      high: 104999
       resolution: 1
       type: regular
     k:
-      min: 0
-      max: 324999
+      low: 0
+      high: 324999
       resolution: 1
       type: regular
-  range type fields:
+  range_type:
     dlt:
       type: Category
       label: dominant leaf type map of Europe
-      description: >
-        raster coding (thematic pixel values): 
-        0: all non-tree covered areas; 
-        1: broadleaved trees; 
-        2: coniferous trees; 
-        254: unclassifiable (no satellite image available, or clouds, shadows, or snow); 
-        255: outside area
+      description: raster coding (thematic pixel values): 0: all non-tree covered areas; 1: broadleaved trees; 2: coniferous trees; 254: unclassifiable (no satellite image available, or clouds, shadows, or snow); 255: outside area
       definition: https://land.copernicus.eu/en/technical-library/hrl-forest-2012-2015/@@download/file
-      nil values: 250
+      nil_values: 250
   metadata:
     covMetadata:
       axes:
@@ -225,7 +216,7 @@ dominant_leaf_type_20m:
       catalog:
         title: Dominant Leaf Type (2012-2015)
         thumbnail: https://fairicube.rasdaman.com/rasdaman/ows/coverage/thumbnail?COVERAGEID=dominant_leaf_type_20m
-        description: Provides at pan-European level in the spatial resolution of 20 m information on the dominant leaf type (broadleaved or coniferous).
+        description: Provides at pan-European level in the spatial resolution of 20 m information on the dominant leaf type (broadleaved or coniferous). According to the 2020 State of Europeâs Forest report, approximately 70% of European forests are dominated by broadleaf deciduous trees while the remaining 30% are dominated by evergreen coniferous trees. Broadleaf and coniferous forests represent distinct habitat types and require different ecological considerations and management approaches. For example, coniferous forests are often more fire-resistant than broadleaf forests, but coniferous forests are also more vulnerable to infestations from insects such as bark beetles and processionary moths. There are also differences with regards to carbon storage and sequestrationâbroadleaf forests typically have higher tree density and larger average trunk diameter while coniferous forests have a longer growing season and deeper root systems. The High Resolution Layer Dominant Leaf Type product allows users to identify and track changes in the dominant leaf type of all European tree cover. This data can be used to monitor the health of ecosystems, identify areas experiencing high levels of deforestation or reforestation, manage natural resources, inform climate change mitigation strategies, and support biodiversity conservation efforts. Because this is a high resolution product, which covers the entirety of Europe, it can be used to inform policy decisions from the regional to the continental scale. The product is currently on a three-year update cycle, but in 2024 these will become annual, beginning from the 2019 reference year.
         provenance:
           "@sourceUrl": https://land.copernicus.eu/en/products/high-resolution-layer-dominant-leaf-type
           "@providerName": Copernicus
