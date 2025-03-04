@@ -1,0 +1,24 @@
+wcs
+===
+
+.. py:module:: wcs
+
+.. autoapi-nested-parse::
+
+   - :mod:`wcs.model` contains classes representing to WCS Coverage objects.
+   - :mod:`wcs.service` allows to send queries to a WCS server.
+   - :mod:`wcs.parse` is used internally to parse WCS XML responses into :mod:`wcs.model` objects.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/wcs/model/index
+   /autoapi/wcs/parser/index
+   /autoapi/wcs/service/index
+
+

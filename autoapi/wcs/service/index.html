@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>wcs.service &#8212; WCS Python Client 0.2.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <script src="../../../_static/documentation_options.js?v=cb850272"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="wcs.parser" href="../parser/index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-wcs.service">
+<span id="wcs-service"></span><h1>wcs.service<a class="headerlink" href="#module-wcs.service" title="Link to this heading">¶</a></h1>
+<p>List all coverages, or get full information about a particular coverage
+from a WCS endpoint.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.service.DEFAULT_CONN_TIMEOUT" title="wcs.service.DEFAULT_CONN_TIMEOUT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CONN_TIMEOUT</span></code></a></p></td>
+<td><p>Default timeout to establish a connection to the WCS service: 10 seconds.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.service.DEFAULT_READ_TIMEOUT" title="wcs.service.DEFAULT_READ_TIMEOUT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_READ_TIMEOUT</span></code></a></p></td>
+<td><p>Default timeout to wait for a query to execute: 10 minutes.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.service.WebCoverageService" title="wcs.service.WebCoverageService"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebCoverageService</span></code></a></p></td>
+<td><p>Establish a connection to a WCS service, send requests and retrieve results.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="wcs.service.DEFAULT_CONN_TIMEOUT">
+<span class="sig-name descname"><span class="pre">DEFAULT_CONN_TIMEOUT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="reference internal" href="../../../_modules/wcs/service.html#DEFAULT_CONN_TIMEOUT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.DEFAULT_CONN_TIMEOUT" title="Link to this definition">¶</a></dt>
+<dd><p>Default timeout to establish a connection to the WCS service: 10 seconds.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="wcs.service.DEFAULT_READ_TIMEOUT">
+<span class="sig-name descname"><span class="pre">DEFAULT_READ_TIMEOUT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">600</span></em><a class="reference internal" href="../../../_modules/wcs/service.html#DEFAULT_READ_TIMEOUT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.DEFAULT_READ_TIMEOUT" title="Link to this definition">¶</a></dt>
+<dd><p>Default timeout to wait for a query to execute: 10 minutes.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WebCoverageService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conn_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">DEFAULT_CONN_TIMEOUT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">DEFAULT_READ_TIMEOUT</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService" title="Link to this definition">¶</a></dt>
+<dd><p>Establish a connection to a WCS service, send requests and retrieve results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – the WCS server endpoint URL, e.g. <a class="reference external" href="https://ows.rasdaman.org/rasdaman/ows">https://ows.rasdaman.org/rasdaman/ows</a></p></li>
+<li><p><strong>username</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – optional username for basic authentication to the WCS server</p></li>
+<li><p><strong>password</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – optional password for basic authentication to the WCS server</p></li>
+<li><p><strong>conn_timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – how long (seconds) to wait for the connection to be established</p></li>
+<li><p><strong>read_timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – how long (seconds) to wait for the query to execute</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">service</span> <span class="o">=</span> <span class="n">WebCoverageService</span><span class="p">(</span>
+    <span class="s2">&quot;https://ows.rasdaman.org/rasdaman/ows&quot;</span><span class="p">)</span>
+
+<span class="n">coverages</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">list_coverages</span><span class="p">()</span>
+<span class="n">avg_land_temp</span> <span class="o">=</span> <span class="n">coverages</span><span class="p">[</span><span class="s1">&#39;AvgLandTemp&#39;</span><span class="p">]</span>
+
+<span class="n">full_avg_land_temp</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">list_full_info</span><span class="p">(</span><span class="s1">&#39;AvgLandTemp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService.endpoint">
+<span class="sig-name descname"><span class="pre">endpoint</span></span><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService.endpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService.endpoint" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService.auth">
+<span class="sig-name descname"><span class="pre">auth</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService.auth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService.auth" title="Link to this definition">¶</a></dt>
+<dd><p>Map of coverage objects retreived from the <code class="docutils literal notranslate"><span class="pre">endpoint</span></code>, as (name, coverage) pairs.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService.conn_timeout">
+<span class="sig-name descname"><span class="pre">conn_timeout</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService.conn_timeout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService.conn_timeout" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService.read_timeout">
+<span class="sig-name descname"><span class="pre">read_timeout</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">600</span></em><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService.read_timeout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService.read_timeout" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService.version">
+<span class="sig-name descname"><span class="pre">version</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'2.1.0'</span></em><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService.version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService.version" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService.service">
+<span class="sig-name descname"><span class="pre">service</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'WCS'</span></em><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService.service"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService.service" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService.list_coverages">
+<span class="sig-name descname"><span class="pre">list_coverages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">only_local</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService.list_coverages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService.list_coverages" title="Link to this definition">¶</a></dt>
+<dd><p>Retreives the available coverages from the WCS server with a GetCapabilities request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>only_local</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – list only local coverages, filtering out any remote coverages.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a dict of (coverage name, <a class="reference internal" href="../model/index.html#wcs.model.BasicCoverage" title="wcs.model.BasicCoverage"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.BasicCoverage</span></code></a>) pairs
+for each available coverage.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – if resolving the GetCapabilities or parsing it fails.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, <a class="reference internal" href="../model/index.html#wcs.model.BasicCoverage" title="wcs.model.BasicCoverage">wcs.model.BasicCoverage</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.service.WebCoverageService.list_full_info">
+<span class="sig-name descname"><span class="pre">list_full_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coverage_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/service.html#WebCoverageService.list_full_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.service.WebCoverageService.list_full_info" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve full information of coverage <code class="docutils literal notranslate"><span class="pre">nacoverage_nameme</span></code> with a
+DescribeCoverage request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coverage_name</strong> – coverage name to lookup</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – if the coverage does not exist, or its
+DescribeCoverage document fails to parse.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.FullCoverage" title="wcs.model.FullCoverage">wcs.model.FullCoverage</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">WCS Python Client</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#acknowledgments">Acknowledgments</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">wcs</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">API Reference</a><ul>
+  <li><a href="../index.html">wcs</a><ul>
+      <li>Previous: <a href="../parser/index.html" title="previous chapter">wcs.parser</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, rasdaman team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

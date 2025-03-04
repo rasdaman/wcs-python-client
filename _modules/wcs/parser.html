@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wcs.parser &#8212; WCS Python Client 0.2.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <script src="../../_static/documentation_options.js?v=cb850272"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for wcs.parser</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utility methods for parsing XML into :mod:`wcs.model` objects.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span><span class="p">,</span> <span class="n">parse_qs</span>
+
+<span class="kn">from</span> <span class="nn">wcs.model</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BasicCoverage</span><span class="p">,</span> <span class="n">WCSClientException</span><span class="p">,</span>
+                       <span class="n">BoundingBox</span><span class="p">,</span> <span class="n">BoundType</span><span class="p">,</span> <span class="n">Axis</span><span class="p">,</span> <span class="n">FullCoverage</span><span class="p">,</span>
+                       <span class="n">RangeType</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">NilValue</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+<span class="c1"># DescribeCoverage</span>
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="parse_describe_coverage">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_describe_coverage">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_describe_coverage</span><span class="p">(</span><span class="n">xml_string</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">FullCoverage</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses an XML string from a DescribeCoverage response into a :class:`wcs.model.FullCoverage`.</span>
+
+<span class="sd">    It extracts essential information including the coverage name, metadata,</span>
+<span class="sd">    domain set, and range type. The extracted data is used to construct and return</span>
+<span class="sd">    a :class:`wcs.model.FullCoverage` object.</span>
+
+<span class="sd">    :param xml_string: An XML string or bytes object containing the DescribeCoverage</span>
+<span class="sd">        document. The XML should contain elements such as &#39;CoverageDescription&#39;,</span>
+<span class="sd">        &#39;Metadata&#39;, &#39;DomainSet&#39;, and &#39;RangeType&#39;.</span>
+
+<span class="sd">    :return: A :class:`wcs.model.FullCoverage` object constructed from the parsed XML data.</span>
+
+<span class="sd">    :raises WCSClientException: If the XML does not contain a valid &#39;CoverageDescription&#39;</span>
+<span class="sd">        element or if the parsing process encounters any other issues.</span>
+<span class="sd">    :raises ET.ParseError: If the XML string is malformed and cannot be parsed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">xml_string</span><span class="p">)</span>
+    <span class="n">cov_desc</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">root</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;CoverageDescription&#39;</span><span class="p">):</span>
+            <span class="n">cov_desc</span> <span class="o">=</span> <span class="n">child</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">cov_desc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="s2">&quot;Invalid DescribeCoverage document: &quot;</span>
+                                 <span class="s2">&quot;no CoverageDescription element found.&quot;</span><span class="p">)</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">get_child</span><span class="p">(</span><span class="n">cov_desc</span><span class="p">,</span> <span class="s1">&#39;CoverageId&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+    <span class="n">metadata_element</span> <span class="o">=</span> <span class="n">get_child</span><span class="p">(</span><span class="n">cov_desc</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">,</span> <span class="n">throw_if_not_found</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">domain_set_element</span> <span class="o">=</span> <span class="n">get_child</span><span class="p">(</span><span class="n">cov_desc</span><span class="p">,</span> <span class="s1">&#39;DomainSet&#39;</span><span class="p">)</span>
+    <span class="n">range_type_element</span> <span class="o">=</span> <span class="n">get_child</span><span class="p">(</span><span class="n">cov_desc</span><span class="p">,</span> <span class="s1">&#39;RangeType&#39;</span><span class="p">)</span>
+
+    <span class="n">geo_bbox</span><span class="p">,</span> <span class="n">grid_bbox</span> <span class="o">=</span> <span class="n">parse_domain_set</span><span class="p">(</span><span class="n">domain_set_element</span><span class="p">)</span>
+    <span class="n">range_type</span> <span class="o">=</span> <span class="n">parse_range_type</span><span class="p">(</span><span class="n">range_type_element</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">parse_metadata</span><span class="p">(</span><span class="n">metadata_element</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">FullCoverage</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">geo_bbox</span><span class="p">,</span> <span class="n">grid_bbox</span><span class="o">=</span><span class="n">grid_bbox</span><span class="p">,</span> <span class="n">range_type</span><span class="o">=</span><span class="n">range_type</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_domain_set">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_domain_set">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_domain_set</span><span class="p">(</span><span class="n">domain_set_element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses an XML element representing a DomainSet into corresponding objects.</span>
+
+<span class="sd">    It extracts information about spatio-temporal regular/irregular axes, and constructs</span>
+<span class="sd">    geo and grid :class:`wcs.model.BoundingBox` objects. Example XML structure:</span>
+
+<span class="sd">    .. code:: xml</span>
+
+<span class="sd">        &lt;cis11:DomainSet&gt;</span>
+<span class="sd">          &lt;cis11:GeneralGrid</span>
+<span class="sd">            srsName=&quot;https://www.opengis.net/def/crs-compound?</span>
+<span class="sd">            1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;amp;</span>
+<span class="sd">            2=https://www.opengis.net/def/crs/EPSG/0/4326&quot;</span>
+<span class="sd">            axisLabels=&quot;ansi Lat Lon&quot;&gt;</span>
+<span class="sd">            &lt;cis11:RegularAxis axisLabel=&quot;Lat&quot; uomLabel=&quot;degree&quot;</span>
+<span class="sd">              lowerBound=&quot;-90&quot; upperBound=&quot;90&quot; resolution=&quot;-0.1&quot;/&gt;</span>
+<span class="sd">            &lt;cis11:RegularAxis axisLabel=&quot;Lon&quot; uomLabel=&quot;degree&quot;</span>
+<span class="sd">              lowerBound=&quot;-180&quot; upperBound=&quot;180&quot; resolution=&quot;0.1&quot;/&gt;</span>
+<span class="sd">            &lt;cis11:IrregularAxis axisLabel=&quot;ansi&quot; uomLabel=&quot;d&quot;&gt;</span>
+<span class="sd">              &lt;cis11:C&gt;&quot;2000-02-01T00:00:00.000Z&quot;&lt;/cis11:C&gt;</span>
+<span class="sd">              &lt;cis11:C&gt;&quot;2000-03-01T00:00:00.000Z&quot;&lt;/cis11:C&gt;</span>
+<span class="sd">            &lt;/cis11:IrregularAxis&gt;</span>
+<span class="sd">            &lt;cis11:GridLimits</span>
+<span class="sd">              srsName=&quot;http://www.opengis.net/def/crs/OGC/0/Index3D&quot;</span>
+<span class="sd">              axisLabels=&quot;i j k&quot;&gt;</span>
+<span class="sd">              &lt;cis11:IndexAxis axisLabel=&quot;i&quot;</span>
+<span class="sd">                lowerBound=&quot;0&quot; upperBound=&quot;184&quot;/&gt;</span>
+<span class="sd">              &lt;cis11:IndexAxis axisLabel=&quot;j&quot;</span>
+<span class="sd">                lowerBound=&quot;0&quot; upperBound=&quot;1799&quot;/&gt;</span>
+<span class="sd">              &lt;cis11:IndexAxis axisLabel=&quot;k&quot;</span>
+<span class="sd">                lowerBound=&quot;0&quot; upperBound=&quot;3599&quot;/&gt;</span>
+<span class="sd">            &lt;/cis11:GridLimits&gt;</span>
+<span class="sd">          &lt;/cis11:GeneralGrid&gt;</span>
+<span class="sd">        &lt;/cis11:DomainSet&gt;</span>
+
+<span class="sd">    :param domain_set_element: An XML element representing the DomainSet</span>
+<span class="sd">        structure. It should contain one or more &#39;cis11:GeneralGrid&#39; elements,</span>
+<span class="sd">        which in turn include &#39;cis11:RegularAxis&#39; or &#39;cis11:IrregularAxis&#39; elements,</span>
+<span class="sd">        and a &#39;cis11:GridLimits&#39; element.</span>
+
+<span class="sd">    :return: A tuple containing geo and grid :class:`BoundingBox` objects.</span>
+<span class="sd">        If the input is None, the function returns (None, None).</span>
+
+<span class="sd">    :raises WCSClientException: If the provided XML does not conform to the expected structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">domain_set_element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">validate_tag_name</span><span class="p">(</span><span class="n">domain_set_element</span><span class="p">,</span> <span class="s1">&#39;DomainSet&#39;</span><span class="p">)</span>
+
+    <span class="n">geo_axes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">grid_axes</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">general_grid</span> <span class="o">=</span> <span class="n">first_child</span><span class="p">(</span><span class="n">domain_set_element</span><span class="p">,</span> <span class="s1">&#39;GeneralGrid&#39;</span><span class="p">)</span>
+    <span class="n">crs</span> <span class="o">=</span> <span class="n">general_grid</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;srsName&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">axis_element</span> <span class="ow">in</span> <span class="n">general_grid</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">axis_element</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">axis_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;axisLabel&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;RegularAxis&#39;</span><span class="p">:</span>
+            <span class="n">resolution</span> <span class="o">=</span> <span class="n">axis_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resolution&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">resolution</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">resolution</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="c1"># it may be a datetime resolution which is not a number</span>
+                <span class="k">pass</span>
+
+            <span class="n">geo_axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Axis</span><span class="p">(</span><span class="n">name</span><span class="p">,</span>
+                                 <span class="n">low</span><span class="o">=</span><span class="n">parse_bound</span><span class="p">(</span><span class="n">axis_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lowerBound&#39;</span><span class="p">)),</span>
+                                 <span class="n">high</span><span class="o">=</span><span class="n">parse_bound</span><span class="p">(</span><span class="n">axis_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;upperBound&#39;</span><span class="p">)),</span>
+                                 <span class="n">uom</span><span class="o">=</span><span class="n">axis_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uomLabel&#39;</span><span class="p">),</span>
+                                 <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;IrregularAxis&#39;</span><span class="p">:</span>
+            <span class="n">coefficients</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse_bound</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">axis_element</span><span class="p">]</span>
+            <span class="n">geo_axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Axis</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">coefficients</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">coefficients</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                                 <span class="n">uom</span><span class="o">=</span><span class="n">axis_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uomLabel&#39;</span><span class="p">),</span>
+                                 <span class="n">coefficients</span><span class="o">=</span><span class="n">coefficients</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;GridLimits&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">index_axis</span> <span class="ow">in</span> <span class="n">axis_element</span><span class="p">:</span>
+                <span class="n">grid_axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Axis</span><span class="p">(</span><span class="n">index_axis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;axisLabel&#39;</span><span class="p">),</span>
+                                      <span class="n">low</span><span class="o">=</span><span class="n">parse_bound</span><span class="p">(</span><span class="n">index_axis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lowerBound&#39;</span><span class="p">)),</span>
+                                      <span class="n">high</span><span class="o">=</span><span class="n">parse_bound</span><span class="p">(</span><span class="n">index_axis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;upperBound&#39;</span><span class="p">)),</span>
+                                      <span class="n">resolution</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># sort the geo_axes to match the order of axis_labels</span>
+    <span class="n">axis_labels</span> <span class="o">=</span> <span class="n">general_grid</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;axisLabels&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">axis_labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="s2">&quot;GeneralGrid element missing axisLabels attribute.&quot;</span><span class="p">)</span>
+    <span class="n">name_to_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">index</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axis_labels</span><span class="o">.</span><span class="n">split</span><span class="p">())}</span>
+    <span class="n">geo_axes</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">geo_axes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">axis</span><span class="p">:</span> <span class="n">name_to_index</span><span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+    <span class="c1"># set axis CRS</span>
+    <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">axis_crs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">geo_axes</span><span class="p">,</span> <span class="n">crs_to_crs_per_axis</span><span class="p">(</span><span class="n">crs</span><span class="p">)):</span>
+        <span class="n">axis</span><span class="o">.</span><span class="n">crs</span> <span class="o">=</span> <span class="n">axis_crs</span>
+
+    <span class="k">return</span> <span class="n">BoundingBox</span><span class="p">(</span><span class="n">geo_axes</span><span class="p">,</span> <span class="n">crs</span><span class="p">),</span> <span class="n">BoundingBox</span><span class="p">(</span><span class="n">grid_axes</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_range_type">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_range_type">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_range_type</span><span class="p">(</span><span class="n">range_type_element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RangeType</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses an XML element representing a RangeType into a :class:`wcs.model.RangeType` object.</span>
+
+<span class="sd">    This function processes an XML element handling either</span>
+<span class="sd">    &#39;swe:Category&#39; or &#39;swe:Quantity&#39; fields within a &#39;swe:DataRecord&#39;.</span>
+<span class="sd">    It extracts fields information such as field name, definition, label,</span>
+<span class="sd">    description, codespace, unit of measurement, and nil values,</span>
+<span class="sd">    constructing a list of :class:`wcs.model.Field` objects that are then encapsulated within</span>
+<span class="sd">    a :class:`wcs.model.RangeType` object.</span>
+
+<span class="sd">    Supported XML structures:</span>
+
+<span class="sd">    1. **swe:Category field**:</span>
+
+<span class="sd">       .. code:: xml</span>
+
+<span class="sd">            &lt;cis11:RangeType&gt;</span>
+<span class="sd">              &lt;swe:DataRecord&gt;</span>
+<span class="sd">                &lt;swe:field name=&quot;land_use&quot;&gt;</span>
+<span class="sd">                  &lt;swe:Category definition=&quot;...&quot;&gt;</span>
+<span class="sd">                    &lt;swe:label&gt;National Land Use&lt;/swe:label&gt;</span>
+<span class="sd">                    &lt;swe:description&gt;description text&lt;/swe:description&gt;</span>
+<span class="sd">                    &lt;swe:nilValues&gt;</span>
+<span class="sd">                      &lt;swe:NilValues&gt;</span>
+<span class="sd">                        &lt;swe:nilValue reason=&quot;&quot;&gt;0&lt;/swe:nilValue&gt;</span>
+<span class="sd">                      &lt;/swe:NilValues&gt;</span>
+<span class="sd">                    &lt;/swe:nilValues&gt;</span>
+<span class="sd">                    &lt;swe:codeSpace xlink:href=&quot;....&quot;/&gt;</span>
+<span class="sd">                  &lt;/swe:Category&gt;</span>
+<span class="sd">                &lt;/swe:field&gt;</span>
+<span class="sd">              &lt;/swe:DataRecord&gt;</span>
+<span class="sd">            &lt;/cis11:RangeType&gt;</span>
+
+<span class="sd">    2. **swe:Quantity field**:</span>
+
+<span class="sd">       .. code:: xml</span>
+
+<span class="sd">            &lt;cis11:RangeType&gt;</span>
+<span class="sd">              &lt;swe:DataRecord&gt;</span>
+<span class="sd">                &lt;swe:field name=&quot;temperature&quot;&gt;</span>
+<span class="sd">                  &lt;swe:Quantity definition=&quot;...&quot;&gt;</span>
+<span class="sd">                    &lt;swe:label&gt;Monthly temperature&lt;/swe:label&gt;</span>
+<span class="sd">                    &lt;swe:description&gt;description text&lt;/swe:description&gt;</span>
+<span class="sd">                    &lt;swe:nilValues&gt;</span>
+<span class="sd">                      &lt;swe:NilValues&gt;</span>
+<span class="sd">                        &lt;swe:nilValue reason=&quot;&quot;&gt;-9999&lt;/swe:nilValue&gt;</span>
+<span class="sd">                      &lt;/swe:NilValues&gt;</span>
+<span class="sd">                    &lt;/swe:nilValues&gt;</span>
+<span class="sd">                    &lt;swe:uom code=&quot;°C&quot;/&gt;</span>
+<span class="sd">                  &lt;/swe:Quantity&gt;</span>
+<span class="sd">                &lt;/swe:field&gt;</span>
+<span class="sd">              &lt;/swe:DataRecord&gt;</span>
+<span class="sd">            &lt;/cis11:RangeType&gt;</span>
+
+<span class="sd">    :param range_type_element: An XML element representing the RangeType</span>
+<span class="sd">        structure. It should contain one or more &#39;swe:DataRecord&#39; elements,</span>
+<span class="sd">        each with &#39;swe:field&#39; elements that can be either &#39;swe:Category&#39; or</span>
+<span class="sd">        &#39;swe:Quantity&#39;.</span>
+
+<span class="sd">    :return: A RangeType object containing a list of Field objects. Each Field</span>
+<span class="sd">        object represents either a &#39;swe:Category&#39; or &#39;swe:Quantity&#39; extracted</span>
+<span class="sd">        from the XML, with associated metadata. If the input is None, then</span>
+<span class="sd">        None is returned.</span>
+
+<span class="sd">    :raises WCSClientException: If the provided XML does not conform to the expected structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">range_type_element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">validate_tag_name</span><span class="p">(</span><span class="n">range_type_element</span><span class="p">,</span> <span class="s1">&#39;RangeType&#39;</span><span class="p">)</span>
+
+    <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Field</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">data_record</span> <span class="o">=</span> <span class="n">first_child</span><span class="p">(</span><span class="n">range_type_element</span><span class="p">,</span> <span class="s1">&#39;DataRecord&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">field_element</span> <span class="ow">in</span> <span class="n">data_record</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">field_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">child</span> <span class="o">=</span> <span class="n">first_child</span><span class="p">(</span><span class="n">field_element</span><span class="p">)</span>
+        <span class="c1"># child = swe:Quantity or swe:Category</span>
+        <span class="n">field</span><span class="o">.</span><span class="n">is_quantity</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">child</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Quantity&#39;</span>
+        <span class="n">field</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;definition&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">child</span><span class="p">:</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;description&#39;</span><span class="p">:</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;codeSpace&#39;</span><span class="p">:</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">codespace</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;uom&#39;</span><span class="p">:</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">uom</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;nilValues&#39;</span><span class="p">:</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">nil_values</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">nil_values_element</span> <span class="o">=</span> <span class="n">first_child</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">nil_values_element</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;NilValues&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">nil_value</span> <span class="ow">in</span> <span class="n">nil_values_element</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">nil_value</span><span class="o">.</span><span class="n">text</span>
+                        <span class="n">reason</span> <span class="o">=</span> <span class="n">nil_value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reason&#39;</span><span class="p">)</span>
+                        <span class="n">field</span><span class="o">.</span><span class="n">nil_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NilValue</span><span class="p">(</span><span class="n">nil_value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">reason</span><span class="p">))</span>
+
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">RangeType</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_metadata">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_metadata">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_metadata</span><span class="p">(</span><span class="n">metadata_element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse an XML Metadata element into a dictionary. Example XML structure:</span>
+
+<span class="sd">    .. code:: xml</span>
+
+<span class="sd">        &lt;Metadata&gt;</span>
+<span class="sd">          &lt;covMetadata&gt;</span>
+<span class="sd">            &lt;title&gt;Temperature&lt;/title&gt;</span>
+<span class="sd">            &lt;abstract&gt;Monthly average air temperature.&lt;/abstract&gt;</span>
+<span class="sd">            &lt;description&gt;Description.&lt;/description&gt;</span>
+<span class="sd">            &lt;keywords&gt;climate, temperature&lt;/keywords&gt;</span>
+<span class="sd">          &lt;/covMetadata&gt;</span>
+<span class="sd">          &lt;rasdamanCoverageMetadata&gt;</span>
+<span class="sd">            &lt;catalog&gt;</span>
+<span class="sd">              &lt;title&gt;Temperature&lt;/title&gt;</span>
+<span class="sd">              &lt;thumbnail&gt;https://localhost/thumbnail.png&lt;/thumbnail&gt;</span>
+<span class="sd">              &lt;description&gt;Description.&lt;/description&gt;</span>
+<span class="sd">              &lt;provenance sourceUrl=&quot;https://localhost&quot;</span>
+<span class="sd">                providerName=&quot;P&quot; termsUrl=&quot;http://localhost&quot;/&gt;</span>
+<span class="sd">              &lt;ourTerms&gt;https://localhost/#terms&lt;/ourTerms&gt;</span>
+<span class="sd">            &lt;/catalog&gt;</span>
+<span class="sd">          &lt;/rasdamanCoverageMetadata&gt;</span>
+<span class="sd">          &lt;otherMetadata role=&quot;https://codelists&quot; title=&quot;Catalog&quot;</span>
+<span class="sd">            href=&quot;https://localhost&quot;/&gt;</span>
+<span class="sd">        &lt;/Metadata&gt;</span>
+
+<span class="sd">    :param metadata_element: An XML element containing metadata information.</span>
+<span class="sd">        This element is expected to have the tag &#39;Metadata&#39;.</span>
+
+<span class="sd">    :return: A dictionary representation of the metadata contained within the</span>
+<span class="sd">        XML element. Nested elements are converted to nested dicts. Element attributes</span>
+<span class="sd">        convert to key names starting with &#39;@&#39;.</span>
+<span class="sd">        If the input is ``None`` or an empty XML element, an empty dictionary is returned.</span>
+
+<span class="sd">    :raises WCSClientException: If the root tag of ``metadata_element`` is not &#39;Metadata&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">metadata_element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">validate_tag_name</span><span class="p">(</span><span class="n">metadata_element</span><span class="p">,</span> <span class="s1">&#39;Metadata&#39;</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">element_to_dict</span><span class="p">(</span><span class="n">metadata_element</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Metadata&#39;</span><span class="p">,</span> <span class="n">ret</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="c1"># empty &lt;Metadata/&gt; element</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+<span class="c1"># GetCapabilities</span>
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="parse_coverage_summaries">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_coverage_summaries">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_coverage_summaries</span><span class="p">(</span><span class="n">xml_string</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">only_local</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BasicCoverage</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses CoverageSummary XML elements from a GetCapabilities XML string.</span>
+
+<span class="sd">    This function takes an XML string representing a GetCapabilities response,</span>
+<span class="sd">    searches for the &#39;Contents&#39; element, and extracts all &#39;CoverageSummary&#39;</span>
+<span class="sd">    elements within it. Each &#39;CoverageSummary&#39; element is parsed into a</span>
+<span class="sd">    :class:`wcs.model.BasicCoverage` object using the</span>
+<span class="sd">    :meth:`parse_coverage_summary` function.</span>
+
+<span class="sd">    :param xml_string: A GetCapabilities XML string, provided as either a</span>
+<span class="sd">                       string or bytes object.</span>
+<span class="sd">    :param only_local: parse only local coverages, filtering out any remote coverages.</span>
+<span class="sd">    :return: A list of BasicCoverage objects, each representing a parsed</span>
+<span class="sd">             CoverageSummary element from the XML.</span>
+<span class="sd">    :raises WCSClientException: If the XML does not contain a &#39;Contents&#39;</span>
+<span class="sd">                                element, indicating an invalid GetCapabilities</span>
+<span class="sd">                                document.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">xml_string</span><span class="p">)</span>
+    <span class="n">contents</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">root</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;Contents&#39;</span><span class="p">):</span>
+            <span class="n">contents</span> <span class="o">=</span> <span class="n">child</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">contents</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="s2">&quot;Invalid GetCapabilities document: &quot;</span>
+                                 <span class="s2">&quot;no Contents element found.&quot;</span><span class="p">)</span>
+
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">coverage_summary</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="n">parse_coverage_summary</span><span class="p">(</span><span class="n">coverage_summary</span><span class="p">,</span> <span class="n">only_local</span><span class="o">=</span><span class="n">only_local</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cov</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+
+<div class="viewcode-block" id="parse_coverage_summary">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_coverage_summary">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_coverage_summary</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">],</span> <span class="n">only_local</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicCoverage</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses an XML element representing a Coverage Summary into a BasicCoverage object.</span>
+<span class="sd">    Example XML structure:</span>
+
+<span class="sd">    .. code:: xml</span>
+
+<span class="sd">        &lt;wcs20:CoverageSummary&gt;</span>
+<span class="sd">          &lt;wcs20:CoverageId&gt;AverageChloroColorScaled&lt;/wcs20:CoverageId&gt;</span>
+<span class="sd">          &lt;wcs20:CoverageSubtype&gt;ReferenceableGridCoverage</span>
+<span class="sd">          &lt;/wcs20:CoverageSubtype&gt;</span>
+<span class="sd">          &lt;ows:WGS84BoundingBox&gt;</span>
+<span class="sd">            &lt;ows:LowerCorner&gt;-180 -90&lt;/ows:LowerCorner&gt;</span>
+<span class="sd">            &lt;ows:UpperCorner&gt;180 90&lt;/ows:UpperCorner&gt;</span>
+<span class="sd">          &lt;/ows:WGS84BoundingBox&gt;</span>
+<span class="sd">          &lt;ows:BoundingBox</span>
+<span class="sd">            crs=&quot;https://www.opengis.net/def/crs-compound?</span>
+<span class="sd">            1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;amp;</span>
+<span class="sd">            2=https://www.opengis.net/def/crs/EPSG/0/4326&quot;</span>
+<span class="sd">            dimensions=&quot;3&quot;&gt;</span>
+<span class="sd">            &lt;ows:LowerCorner&gt;</span>
+<span class="sd">                &quot;2002-07-01T00:00:00.000Z&quot; -90 -180</span>
+<span class="sd">            &lt;/ows:LowerCorner&gt;</span>
+<span class="sd">            &lt;ows:UpperCorner&gt;</span>
+<span class="sd">                &quot;2015-05-01T00:00:00.000Z&quot; 90 180</span>
+<span class="sd">            &lt;/ows:UpperCorner&gt;</span>
+<span class="sd">          &lt;/ows:BoundingBox&gt;</span>
+<span class="sd">          &lt;ows:AdditionalParameters&gt;</span>
+<span class="sd">            &lt;ows:AdditionalParameter&gt;</span>
+<span class="sd">              &lt;ows:Name&gt;sizeInBytes&lt;/ows:Name&gt;</span>
+<span class="sd">              &lt;ows:Value&gt;188325000&lt;/ows:Value&gt;</span>
+<span class="sd">            &lt;/ows:AdditionalParameter&gt;</span>
+<span class="sd">            &lt;ows:AdditionalParameter&gt;</span>
+<span class="sd">              &lt;ows:Name&gt;axisList&lt;/ows:Name&gt;</span>
+<span class="sd">              &lt;ows:Value&gt;ansi,Lat,Lon&lt;/ows:Value&gt;</span>
+<span class="sd">            &lt;/ows:AdditionalParameter&gt;</span>
+<span class="sd">          &lt;/ows:AdditionalParameters&gt;</span>
+<span class="sd">        &lt;/wcs20:CoverageSummary&gt;</span>
+
+
+<span class="sd">    :param element: An XML element representing a CoverageSummary.</span>
+<span class="sd">        it should contain &#39;CoverageId&#39; and a &#39;CoverageSubtype&#39;, and optionally</span>
+<span class="sd">        &#39;WGS84BoundingBox&#39;, &#39;BoundingBox&#39;, and &#39;AdditionalParameters&#39;.</span>
+<span class="sd">    :param only_local: parse only local coverages, filtering out any remote coverages.</span>
+<span class="sd">    :return: A BasicCoverage object containing coverage information extracted from the XML,</span>
+<span class="sd">        or None if ``element`` is None or ``only_local`` is True and the coverage is remote.</span>
+<span class="sd">    :raises WCSClientException: If the coverage_summary_element does not have the</span>
+<span class="sd">                                expected tag, or is missing a &#39;CoverageId&#39; element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">validate_tag_name</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;CoverageSummary&#39;</span><span class="p">)</span>
+
+    <span class="n">name</span><span class="p">,</span> <span class="n">subtype</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">bbox</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">element</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;CoverageId&#39;</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">if</span> <span class="n">only_local</span> <span class="ow">and</span> <span class="s1">&#39;--&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;CoverageSubtype&#39;</span><span class="p">:</span>
+            <span class="n">subtype</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;WGS84BoundingBox&#39;</span><span class="p">:</span>
+            <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">parse_wgs84_bounding_box</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;BoundingBox&#39;</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">parse_bounding_box</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;AdditionalParameters&#39;</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">parse_additional_parameters</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="s2">&quot;CoverageSummary is missing required CoverageId child element.&quot;</span><span class="p">)</span>
+
+    <span class="n">size_bytes</span><span class="p">,</span> <span class="n">axis_list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;sizeInBytes&#39;</span><span class="p">:</span>
+            <span class="n">size_bytes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;axisList&#39;</span><span class="p">:</span>
+            <span class="n">axis_list</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+    <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sizeInBytes&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;axisList&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">axis_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">bbox</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">axis_name</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axis_list</span><span class="p">,</span> <span class="n">bbox</span><span class="o">.</span><span class="n">axes</span><span class="p">):</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">axis_name</span>
+
+    <span class="k">return</span> <span class="n">BasicCoverage</span><span class="p">(</span><span class="n">name</span><span class="p">,</span>
+                         <span class="n">subtype</span><span class="o">=</span><span class="n">subtype</span><span class="p">,</span>
+                         <span class="n">lon_lat</span><span class="o">=</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">),</span>
+                         <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span>
+                         <span class="n">size_bytes</span><span class="o">=</span><span class="n">size_bytes</span><span class="p">,</span>
+                         <span class="n">additional_params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_wgs84_bounding_box">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_wgs84_bounding_box">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_wgs84_bounding_box</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Axis</span><span class="p">,</span> <span class="n">Axis</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses an XML element representing a WGS84 bounding box into a tuple of lon/lat</span>
+<span class="sd">    :class:`wcs.model.Axis` objects. Example XML structure:</span>
+
+<span class="sd">    .. code:: xml</span>
+
+<span class="sd">        &lt;ows:WGS84BoundingBox&gt;</span>
+<span class="sd">            &lt;ows:LowerCorner&gt;-180 -90&lt;/ows:LowerCorner&gt;</span>
+<span class="sd">            &lt;ows:UpperCorner&gt;180 90&lt;/ows:UpperCorner&gt;</span>
+<span class="sd">        &lt;/ows:WGS84BoundingBox&gt;</span>
+
+<span class="sd">    :param element: A &#39;WGS84BoundingBox&#39; XML element containing</span>
+<span class="sd">        &#39;LowerCorner&#39; and &#39;UpperCorner&#39; elements.</span>
+<span class="sd">    :return: a tuple of lon/lat :class:`wcs.model.Axis` objects, or None if the input element is None.</span>
+<span class="sd">    :raises WCSClientException: If the element tag is not &#39;WGS84BoundingBox&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">validate_tag_name</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;WGS84BoundingBox&#39;</span><span class="p">)</span>
+
+    <span class="n">bbox</span> <span class="o">=</span> <span class="n">parse_bounding_box</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="s1">&#39;EPSG:4326&#39;</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">bbox</span><span class="o">.</span><span class="n">axes</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected a WGS84BoundingBox element bounds for lon/lat axes, &quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;but got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span><span class="si">}</span><span class="s2"> bounds&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Lon&#39;</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Lat&#39;</span>
+    <span class="k">return</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="parse_bounding_box">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_bounding_box">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_bounding_box</span><span class="p">(</span><span class="n">bbox_element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">],</span> <span class="n">crs</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses an XML element representing a bounding box into a BoundingBox object.</span>
+<span class="sd">    Example XML structure:</span>
+
+<span class="sd">    .. code:: xml</span>
+
+<span class="sd">        &lt;ows:BoundingBox</span>
+<span class="sd">          crs=&quot;https://www.opengis.net/def/crs-compound?</span>
+<span class="sd">          1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;amp;</span>
+<span class="sd">          2=https://www.opengis.net/def/crs/EPSG/0/4326&quot; dimensions=&quot;3&quot;&gt;</span>
+<span class="sd">          &lt;ows:LowerCorner&gt;</span>
+<span class="sd">            &quot;2002-07-01T00:00:00.000Z&quot; -90 -180</span>
+<span class="sd">          &lt;/ows:LowerCorner&gt;</span>
+<span class="sd">          &lt;ows:UpperCorner&gt;</span>
+<span class="sd">            &quot;2015-05-01T00:00:00.000Z&quot; 90 180</span>
+<span class="sd">          &lt;/ows:UpperCorner&gt;</span>
+<span class="sd">        &lt;/ows:BoundingBox&gt;</span>
+
+<span class="sd">    :param bbox_element: An XML element representing the bounding box. It should</span>
+<span class="sd">                         contain &#39;LowerCorner&#39; and &#39;UpperCorner&#39; child elements.</span>
+<span class="sd">    :param crs: An optional CRS identifier string. If not provided, the CRS is</span>
+<span class="sd">                inferred from the &#39;crs&#39; attribute of the bbox_element.</span>
+<span class="sd">    :return: A :class:`wcs.model.BoundingBox` object containing the parsed CRS and axis</span>
+<span class="sd">        lower/upper bounds.</span>
+<span class="sd">    :raises WCSClientException: If the parsing of &#39;LowerCorner&#39; or &#39;UpperCorner&#39; elements fails.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">bbox_element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">bbox_element</span><span class="p">)</span>
+    <span class="n">ll</span><span class="p">,</span> <span class="n">ur</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">bbox_element</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;LowerCorner&#39;</span><span class="p">:</span>
+            <span class="n">ll</span> <span class="o">=</span> <span class="n">parse_bounds_list</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;UpperCorner&#39;</span><span class="p">:</span>
+            <span class="n">ur</span> <span class="o">=</span> <span class="n">parse_bounds_list</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ll</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed parsing </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">/LowerCorner element.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ur</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed parsing </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">/UpperCorner element.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">crs</span> <span class="o">=</span> <span class="n">bbox_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;crs&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed parsing CRS from XML element:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">element_to_string</span><span class="p">(</span><span class="n">bbox_element</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">axis_crss</span> <span class="o">=</span> <span class="n">crs_to_crs_per_axis</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">axis_crs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">ur</span><span class="p">,</span> <span class="n">axis_crss</span><span class="p">):</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Axis</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">axis_crs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">BoundingBox</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_additional_parameters">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_additional_parameters">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_additional_parameters</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses additional parameters from an XML element into a dict of key/value strings.</span>
+<span class="sd">    Example XML structure:</span>
+
+<span class="sd">    .. code:: xml</span>
+
+<span class="sd">        &lt;ows:AdditionalParameters&gt;</span>
+<span class="sd">            &lt;ows:AdditionalParameter&gt;</span>
+<span class="sd">                &lt;ows:Name&gt;sizeInBytes&lt;/ows:Name&gt;</span>
+<span class="sd">                &lt;ows:Value&gt;188325000&lt;/ows:Value&gt;</span>
+<span class="sd">            &lt;/ows:AdditionalParameter&gt;</span>
+<span class="sd">            &lt;ows:AdditionalParameter&gt;</span>
+<span class="sd">                &lt;ows:Name&gt;axisList&lt;/ows:Name&gt;</span>
+<span class="sd">                &lt;ows:Value&gt;ansi,Lat,Lon&lt;/ows:Value&gt;</span>
+<span class="sd">            &lt;/ows:AdditionalParameter&gt;</span>
+<span class="sd">        &lt;/ows:AdditionalParameters&gt;</span>
+
+<span class="sd">    :param element: An XML element containing &#39;AdditionalParameter&#39; child elements.</span>
+<span class="sd">                    Each &#39;AdditionalParameter&#39; element is expected to contain a &#39;Name&#39;</span>
+<span class="sd">                    and a &#39;Value&#39; sub-element.</span>
+<span class="sd">    :return: A dictionary mapping parameter names to their values.</span>
+<span class="sd">    :raises WCSClientException: If an unexpected element is found,</span>
+<span class="sd">                                or if &#39;Name&#39; or &#39;Value&#39; elements are missing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ret</span>
+    <span class="n">validate_tag_name</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;AdditionalParameters&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">element</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">!=</span> <span class="s1">&#39;AdditionalParameter&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected child element of AdditionalParameters: </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">param</span><span class="p">:</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;Name&#39;</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;Value&#39;</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected child element of AdditionalParameter: </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="s2">&quot;AdditionalParameter element missing a Name child element.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="s2">&quot;AdditionalParameter element missing a Value child element.&quot;</span><span class="p">)</span>
+
+        <span class="n">ret</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+
+<div class="viewcode-block" id="parse_bounds_list">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_bounds_list">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_bounds_list</span><span class="p">(</span><span class="n">element_text</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BoundType</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses a space-separated string of axis bounds into a list of properly</span>
+<span class="sd">    typed bound values. Each string bound is parsed with :meth:`parse_bound`.</span>
+
+<span class="sd">    :param element_text: A space-separated string containing bound values.</span>
+<span class="sd">    :return: A list of parsed bounds, where each bound is of type :attr:`BoundType`.</span>
+<span class="sd">    :raises WCSClientException: If any bound in the list cannot be parsed into</span>
+<span class="sd">                                a supported type by :meth:`parse_bound`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">element_text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="n">element_text</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse_bound</span><span class="p">(</span><span class="n">bnd</span><span class="p">)</span> <span class="k">for</span> <span class="n">bnd</span> <span class="ow">in</span> <span class="n">bounds</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+
+<div class="viewcode-block" id="parse_bound">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_bound">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_bound</span><span class="p">(</span><span class="n">bound</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BoundType</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses a given axis bound string into its appropriate data type.</span>
+
+<span class="sd">    The method attempts to interpret the input ``bound`` in several formats:</span>
+
+<span class="sd">    - A string representing a datetime in ISO 8601 format.</span>
+<span class="sd">    - A raw string if it starts with a &quot; but failed to parse as a datetime.</span>
+<span class="sd">    - A string representing an integer.</span>
+<span class="sd">    - A string representing a float.</span>
+
+<span class="sd">    :param bound: A string representing the bound value to be parsed. It can be</span>
+<span class="sd">                  a string datetime in ISO 8601 format (optionally in double quotes),</span>
+<span class="sd">                  an integer, or a float.</span>
+<span class="sd">    :return: The parsed bound in its appropriate data type.</span>
+<span class="sd">             Returns `None`` if the input is `None``.</span>
+<span class="sd">    :raises WCSClientException: If the `bound`` cannot be parsed into any of the supported types.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">is_string</span> <span class="o">=</span> <span class="n">bound</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+    <span class="n">bound</span> <span class="o">=</span> <span class="n">bound</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># attempt to parse as a datetime</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">bound</span>
+        <span class="c1"># python 3.10 cannot handle a date ending with Z</span>
+        <span class="k">if</span> <span class="n">tmp</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">):</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;+00:00&#39;</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">is_string</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">bound</span>
+
+    <span class="c1"># attempt to parse as an integer</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># attempt to parse as a float</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed parsing bound &#39;</span><span class="si">{</span><span class="n">bound</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="crs_to_crs_per_axis">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.crs_to_crs_per_axis">[docs]</a>
+<span class="k">def</span> <span class="nf">crs_to_crs_per_axis</span><span class="p">(</span><span class="n">crs</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a single CRS to a list of CRS per axis.</span>
+<span class="sd">    If ``crs`` contains crs-compound, i.e. it is a compund CRS, then it is split first</span>
+<span class="sd">    into it&#39;s component CRS. For each crs then,</span>
+<span class="sd">    - it is added twice into the result list if &#39;EPSG&#39; is contained in it</span>
+<span class="sd">    - otherwise, it is added once into the result list</span>
+
+<span class="sd">    :return: a list of CRS per axis, or an empty list if crs is None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">crss</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="s1">&#39;crs-compound&#39;</span> <span class="ow">in</span> <span class="n">crs</span><span class="p">:</span>
+        <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+        <span class="n">query_params</span> <span class="o">=</span> <span class="n">parse_qs</span><span class="p">(</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">query_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">subcrs</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">crss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subcrs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">crss</span> <span class="o">=</span> <span class="p">[</span><span class="n">crs</span><span class="p">]</span>
+
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">axis_crs</span> <span class="ow">in</span> <span class="n">crss</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis_crs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;EPSG&#39;</span> <span class="ow">in</span> <span class="n">axis_crs</span><span class="p">:</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis_crs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+<span class="c1"># XML</span>
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="get_child">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.get_child">[docs]</a>
+<span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">throw_if_not_found</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve a child element matching a given ``tag`` from an XML element.</span>
+
+<span class="sd">    :param element: The XML element to search for a child with the specified tag.</span>
+<span class="sd">        The tags of child elements are parsed to remove namespaces before comparison</span>
+<span class="sd">        with the :meth:`parse_parse_tag_name` method.</span>
+<span class="sd">    :param tag: The tag name of the child element to search for; it should not</span>
+<span class="sd">        include any namespaces.</span>
+<span class="sd">    :param throw_if_not_found: If True, raises an exception when no matching child is found.</span>
+<span class="sd">                               If False, returns None instead.</span>
+
+<span class="sd">    :return: The first child element with the specified tag, or None if not found</span>
+<span class="sd">             ``throw_if_not_found`` is False.</span>
+
+<span class="sd">    :raises WCSClientException: If no child with the specified tag is found and</span>
+<span class="sd">                                ``throw_if_not_found`` is True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">element</span><span class="p">:</span>
+        <span class="n">child_tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">child_tag</span> <span class="o">==</span> <span class="n">tag</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">child</span>
+
+    <span class="k">if</span> <span class="n">throw_if_not_found</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No element </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1"> found under element </span><span class="si">{</span><span class="n">parse_tag_name</span><span class="p">(</span><span class="n">element</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="first_child">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.first_child">[docs]</a>
+<span class="k">def</span> <span class="nf">first_child</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span> <span class="n">expected_tag</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve the first child element of an XML element.</span>
+
+<span class="sd">    Optionally, it can validate the tag of the first child against an expected</span>
+<span class="sd">    tag (without any namespaces). If no children are present, it raises a</span>
+<span class="sd">    :class:`wcs.model.WCSClientException`.</span>
+
+<span class="sd">    :param element: The XML element whose first child is to be retrieved.</span>
+<span class="sd">    :param expected_tag: The expected tag name of the first child element.</span>
+<span class="sd">                         If provided, the function will validate the tag of the first child.</span>
+
+<span class="sd">    :return: The first child element of the given XML element.</span>
+
+<span class="sd">    :raises WCSClientException: If the element has no children or if the tag of the</span>
+<span class="sd">                                first child does not match the expected tag.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">element</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">expected_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">validate_tag_name</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">expected_tag</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c</span>
+    <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Element </span><span class="si">{</span><span class="n">parse_tag_name</span><span class="p">(</span><span class="n">element</span><span class="p">)</span><span class="si">}</span><span class="s1"> has no child element.&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_tag_name">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.parse_tag_name">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_tag_name</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract just the tag name of an XML element, removing namespace components.</span>
+<span class="sd">    Example: &quot;{http://www.example.com}root&quot; -&gt; &quot;root&quot;</span>
+
+<span class="sd">    :param element: An XML element from which to extract the tag name.</span>
+<span class="sd">    :return: The tag name of the element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">):</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot parse tag name, but expected xml.etree.ElementTree.Element&quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot; or string argument, but got </span><span class="si">{</span><span class="n">element</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="validate_tag_name">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.validate_tag_name">[docs]</a>
+<span class="k">def</span> <span class="nf">validate_tag_name</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span> <span class="n">expected_tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate the tag name of an XML element against an expected tag.</span>
+
+<span class="sd">    This function checks if the tag name of the given XML element matches the</span>
+<span class="sd">    expected tag. It uses the :meth:`parse_tag_name` function to remove any</span>
+<span class="sd">    namespaces in the tag name. If the tag names do not match, it raises a</span>
+<span class="sd">    :class:`wcs.model.WCSClientException`.</span>
+
+<span class="sd">    :param element: The XML element whose tag name is to be validated.</span>
+<span class="sd">    :param expected_tag: The expected tag name to validate against.</span>
+
+<span class="sd">    :raises WCSClientException: If the tag name of the ``element`` does not match the</span>
+<span class="sd">                                expected tag.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tag</span> <span class="o">!=</span> <span class="n">expected_tag</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WCSClientException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected a </span><span class="si">{</span><span class="n">expected_tag</span><span class="si">}</span><span class="s2"> element, but got </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="element_to_string">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.element_to_string">[docs]</a>
+<span class="k">def</span> <span class="nf">element_to_string</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Serialize an XML element to a string.</span>
+
+<span class="sd">    :param element: The XML element to serialize.</span>
+<span class="sd">    :return: A Unicode string representation of the XML element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;unicode&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;xml&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="element_to_dict">
+<a class="viewcode-back" href="../../autoapi/wcs/parser/index.html#wcs.parser.element_to_dict">[docs]</a>
+<span class="k">def</span> <span class="nf">element_to_dict</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert an XML element into a nested dictionary.</span>
+
+<span class="sd">    This function recursively converts an XML element and its children into a</span>
+<span class="sd">    nested dictionary. The keys of the dictionary are the tag names of the XML</span>
+<span class="sd">    elements. Attributes of the XML elements are prefixed with &#39;@&#39; in the</span>
+<span class="sd">    dictionary keys, and text content is stored under a &#39;#text&#39; key.</span>
+
+<span class="sd">    :param t: The XML element to convert.</span>
+<span class="sd">    :return: A nested dictionary representing the structure and content of the XML element.</span>
+
+<span class="sd">    :note:</span>
+<span class="sd">        - Elements with multiple children having the same tag name are converted into lists.</span>
+<span class="sd">        - Text content is only added to the dictionary if the element has children</span>
+<span class="sd">          or attributes, to avoid overwriting important data with whitespace.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">tag</span><span class="p">:</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">attrib</span> <span class="k">else</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">children</span><span class="p">:</span>
+        <span class="n">dd</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dc</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="n">element_to_dict</span><span class="p">,</span> <span class="n">children</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dc</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">dd</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">tag</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dd</span><span class="o">.</span><span class="n">items</span><span class="p">()}}</span>
+    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">attrib</span><span class="p">:</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="s1">&#39;@&#39;</span> <span class="o">+</span> <span class="n">parse_tag_name</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">attrib</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">children</span> <span class="ow">or</span> <span class="n">t</span><span class="o">.</span><span class="n">attrib</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">text</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="s1">&#39;#text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">text</span>
+    <span class="k">return</span> <span class="n">d</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">WCS Python Client</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#acknowledgments">Acknowledgments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, rasdaman team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

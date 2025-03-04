@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>wcs.model &#8212; WCS Python Client 0.2.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <script src="../../../_static/documentation_options.js?v=cb850272"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="wcs.parser" href="../parser/index.html" />
+    <link rel="prev" title="wcs" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-wcs.model">
+<span id="wcs-model"></span><h1>wcs.model<a class="headerlink" href="#module-wcs.model" title="Link to this heading">¶</a></h1>
+<p>Classes holding information about coverages on a WCS server.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.model.BoundType" title="wcs.model.BoundType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BoundType</span></code></a></p></td>
+<td><p>Type for axis interval bounds.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WCSClientException</span></code></a></p></td>
+<td><p>An exception thrown by this library.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.model.BasicCoverage" title="wcs.model.BasicCoverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BasicCoverage</span></code></a></p></td>
+<td><p>Holds basic coverage information extracted from the WCS GetCapabilities</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.model.FullCoverage" title="wcs.model.FullCoverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FullCoverage</span></code></a></p></td>
+<td><p>Holds full coverage information extracted from the WCS DescribeCoverage.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.model.Axis" title="wcs.model.Axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Axis</span></code></a></p></td>
+<td><p>An axis with a name, low/upper bounds, a CRS, uom, resolution, coefficients.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.model.BoundingBox" title="wcs.model.BoundingBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BoundingBox</span></code></a></p></td>
+<td><p>The bounding box of a coverage, containing low/high limits of all its axes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.model.RangeType" title="wcs.model.RangeType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RangeType</span></code></a></p></td>
+<td><p>Represents the range type of a coverage, indicating the structure of the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.model.Field" title="wcs.model.Field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Field</span></code></a></p></td>
+<td><p>A field (also known as band, or channel) in a coverage range type (<a class="reference internal" href="#wcs.model.RangeType" title="wcs.model.RangeType"><code class="xref py py-class docutils literal notranslate"><span class="pre">RangeType</span></code></a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.model.NilValue" title="wcs.model.NilValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NilValue</span></code></a></p></td>
+<td><p>Represents a null value with an optional reason.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.model.Crs" title="wcs.model.Crs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Crs</span></code></a></p></td>
+<td><p>Utility class for handling CRS.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="wcs.model.BoundType">
+<span class="sig-name descname"><span class="pre">BoundType</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#BoundType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BoundType" title="Link to this definition">¶</a></dt>
+<dd><p>Type for axis interval bounds.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.model.BasicCoverage">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BasicCoverage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#BasicCoverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BasicCoverage" title="Link to this definition">¶</a></dt>
+<dd><p>Holds basic coverage information extracted from the WCS GetCapabilities
+document, notably the WGS bounding box if provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – the coverage name.</p></li>
+<li><p><strong>subtype</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – coverage subtype, e.g. ‘ReferenceableGridCoverage’</p></li>
+<li><p><strong>bbox</strong> (<a class="reference internal" href="#wcs.model.BoundingBox" title="wcs.model.BoundingBox"><em>BoundingBox</em></a>) – bounding box in native CRS</p></li>
+<li><p><strong>lon_lat</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference internal" href="#wcs.model.Axis" title="wcs.model.Axis"><em>Axis</em></a><em>, </em><a class="reference internal" href="#wcs.model.Axis" title="wcs.model.Axis"><em>Axis</em></a><em>]</em>) – a tuple of longitude / latitude axes respresenting the
+WGS84 bounding box of the coverage</p></li>
+<li><p><strong>size_bytes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – coverage size in bytes; None if not reported by the server</p></li>
+<li><p><strong>additional_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – additional key/value parameters</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.BasicCoverage.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#BasicCoverage.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BasicCoverage.name" title="Link to this definition">¶</a></dt>
+<dd><p>Coverage name</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.BasicCoverage.subtype">
+<span class="sig-name descname"><span class="pre">subtype</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#BasicCoverage.subtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BasicCoverage.subtype" title="Link to this definition">¶</a></dt>
+<dd><p>Coverage subtype, e.g. ReferenceableGridCoverage</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.BasicCoverage.bbox">
+<span class="sig-name descname"><span class="pre">bbox</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#BasicCoverage.bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BasicCoverage.bbox" title="Link to this definition">¶</a></dt>
+<dd><p>Bounding box of all coverage axes in native CRS</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.BasicCoverage.size_bytes">
+<span class="sig-name descname"><span class="pre">size_bytes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#BasicCoverage.size_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BasicCoverage.size_bytes" title="Link to this definition">¶</a></dt>
+<dd><p>Coverage size in bytes; None if not reported by the server</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.BasicCoverage.additional_params">
+<span class="sig-name descname"><span class="pre">additional_params</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#BasicCoverage.additional_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BasicCoverage.additional_params" title="Link to this definition">¶</a></dt>
+<dd><p>A dictionary of additional key/value parameters if reported by the server</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.BasicCoverage.is_local">
+<span class="sig-name descname"><span class="pre">is_local</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#BasicCoverage.is_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BasicCoverage.is_local" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the coverage is local on the server, False if it’s remote.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.BasicCoverage.is_remote">
+<span class="sig-name descname"><span class="pre">is_remote</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#BasicCoverage.is_remote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BasicCoverage.is_remote" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the coverage is not local on the server, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.model.FullCoverage">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FullCoverage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">range_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#FullCoverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.FullCoverage" title="Link to this definition">¶</a></dt>
+<dd><p>Holds full coverage information extracted from the WCS DescribeCoverage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – the coverage name.</p></li>
+<li><p><strong>bbox</strong> (<a class="reference internal" href="#wcs.model.BoundingBox" title="wcs.model.BoundingBox"><em>BoundingBox</em></a>) – bounding box in native CRS</p></li>
+<li><p><strong>grid_bbox</strong> (<a class="reference internal" href="#wcs.model.BoundingBox" title="wcs.model.BoundingBox"><em>BoundingBox</em></a>) – grid bounding box</p></li>
+<li><p><strong>range_type</strong> (<a class="reference internal" href="#wcs.model.RangeType" title="wcs.model.RangeType"><em>RangeType</em></a>) – coverage range type</p></li>
+<li><p><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.FullCoverage.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#FullCoverage.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.FullCoverage.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.FullCoverage.bbox">
+<span class="sig-name descname"><span class="pre">bbox</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#FullCoverage.bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.FullCoverage.bbox" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.FullCoverage.grid_bbox">
+<span class="sig-name descname"><span class="pre">grid_bbox</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#FullCoverage.grid_bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.FullCoverage.grid_bbox" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.FullCoverage.range_type">
+<span class="sig-name descname"><span class="pre">range_type</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#FullCoverage.range_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.FullCoverage.range_type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.FullCoverage.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#FullCoverage.metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.FullCoverage.metadata" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.FullCoverage.is_local">
+<span class="sig-name descname"><span class="pre">is_local</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#FullCoverage.is_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.FullCoverage.is_local" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the coverage is local on the server, False if it’s remote.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.FullCoverage.is_remote">
+<span class="sig-name descname"><span class="pre">is_remote</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#FullCoverage.is_remote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.FullCoverage.is_remote" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the coverage is not local on the server, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.model.Axis">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Axis</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#Axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis" title="Link to this definition">¶</a></dt>
+<dd><p>An axis with a name, low/upper bounds, a CRS, uom, resolution, coefficients.</p>
+<p>A subset of the coefficients (axis coordinates) can be retrieved with the [] operator,
+e.g. for an irregular temporal axis: axis[“2024-01-01” : “2024-01-31”].
+See <code class="xref py py-meth docutils literal notranslate"><span class="pre">__getitem__()</span></code> for more details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of the axis.</p></li>
+<li><p><strong>low</strong> – Lower bound of the axis.</p></li>
+<li><p><strong>high</strong> – Upper bound of the axis.</p></li>
+<li><p><strong>crs</strong> – Coordinate Reference System, e.g., “EPSG:4326”.</p></li>
+<li><p><strong>uom</strong> – Unit of measure, e.g., “degree”.</p></li>
+<li><p><strong>resolution</strong> – Axis resolution, for regular axes.</p></li>
+<li><p><strong>coefficients</strong> – Axis coefficients for irregular axes.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Axis.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Axis.low">
+<span class="sig-name descname"><span class="pre">low</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">BoundType</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.low"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.low" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Axis.high">
+<span class="sig-name descname"><span class="pre">high</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">BoundType</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.high"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.high" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Axis.crs">
+<span class="sig-name descname"><span class="pre">crs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.crs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.crs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Axis.uom">
+<span class="sig-name descname"><span class="pre">uom</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.uom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.uom" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Axis.resolution">
+<span class="sig-name descname"><span class="pre">resolution</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">BoundType</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.resolution" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Axis.coefficients">
+<span class="sig-name descname"><span class="pre">coefficients</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">BoundType</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.coefficients" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.Axis.is_temporal">
+<span class="sig-name descname"><span class="pre">is_temporal</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.is_temporal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.is_temporal" title="Link to this definition">¶</a></dt>
+<dd><p>Returns: True if this axis is a temporal axis (e.g. ansi), False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.Axis.is_spatial">
+<span class="sig-name descname"><span class="pre">is_spatial</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.is_spatial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.is_spatial" title="Link to this definition">¶</a></dt>
+<dd><p>Returns: True if this axis is a spatial axis (e.g. Lat, Lon, E, N), False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.Axis.is_irregular">
+<span class="sig-name descname"><span class="pre">is_irregular</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.is_irregular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.is_irregular" title="Link to this definition">¶</a></dt>
+<dd><p>Returns: True if this axis is an irregular axis, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.Axis.is_regular">
+<span class="sig-name descname"><span class="pre">is_regular</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.is_regular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.is_regular" title="Link to this definition">¶</a></dt>
+<dd><p>Returns: True if this axis is a regular axis, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.Axis.get_coefficients">
+<span class="sig-name descname"><span class="pre">get_coefficients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#Axis.get_coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Axis.get_coefficients" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a list of coefficients, automatically generated if this
+is a regular axis.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[BoundType]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.model.BoundingBox">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BoundingBox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#BoundingBox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BoundingBox" title="Link to this definition">¶</a></dt>
+<dd><p>The bounding box of a coverage, containing low/high limits of all its axes.</p>
+<p>The axes can be accessed through the <a class="reference internal" href="#wcs.model.BoundingBox.axes" title="wcs.model.BoundingBox.axes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">axes</span></code></a> attribute, or through
+the subscript operator, e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>      <span class="c1"># get the second axis</span>
+<span class="n">bbox</span><span class="p">[</span><span class="s1">&#39;Lat&#39;</span><span class="p">]</span>  <span class="c1"># get the axis with name Lat</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crs</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – native CRS of the axis coordinates</p></li>
+<li><p><strong>axes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference internal" href="#wcs.model.Axis" title="wcs.model.Axis"><em>Axis</em></a><em>]</em>) – a list of <a class="reference internal" href="#wcs.model.Axis" title="wcs.model.Axis"><code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code></a> objects</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.BoundingBox.axes">
+<span class="sig-name descname"><span class="pre">axes</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#BoundingBox.axes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BoundingBox.axes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.BoundingBox.crs">
+<span class="sig-name descname"><span class="pre">crs</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#BoundingBox.crs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.BoundingBox.crs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.model.RangeType">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">RangeType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fields</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#RangeType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.RangeType" title="Link to this definition">¶</a></dt>
+<dd><p>Represents the range type of a coverage, indicating the structure of the data.</p>
+<p>The range type consists of a list of field types (<a class="reference internal" href="#wcs.model.Field" title="wcs.model.Field"><code class="xref py py-class docutils literal notranslate"><span class="pre">Field</span></code></a>).
+The fields can be accessed through the <a class="reference internal" href="#wcs.model.RangeType.fields" title="wcs.model.RangeType.fields"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fields</span></code></a> attribute, or through
+the subscript operator, e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">range_type</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>      <span class="c1"># get the second field</span>
+<span class="n">range_type</span><span class="p">[</span><span class="s1">&#39;blue&#39;</span><span class="p">]</span>  <span class="c1"># get the field with name blue</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fields</strong> – A list of <a class="reference internal" href="#wcs.model.Field" title="wcs.model.Field"><code class="xref py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> objects describing the fields (also
+known as bands or channels) of a coverage.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.RangeType.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wcs.model.Field" title="wcs.model.Field"><span class="pre">Field</span></a><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../_modules/wcs/model.html#RangeType.fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.RangeType.fields" title="Link to this definition">¶</a></dt>
+<dd><p>A list of <a class="reference internal" href="#wcs.model.Field" title="wcs.model.Field"><code class="xref py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> objects corresponding to the bands of the coverage.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.model.Field">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Field</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#Field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field" title="Link to this definition">¶</a></dt>
+<dd><p>A field (also known as band, or channel) in a coverage range type (<a class="reference internal" href="#wcs.model.RangeType" title="wcs.model.RangeType"><code class="xref py py-class docutils literal notranslate"><span class="pre">RangeType</span></code></a>)</p>
+<p>It can be either a quantity or a category. It includes information about the
+field’s name, definition, label, description, codespace (only Category),
+unit of measure (only Quantity), and any nil values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The name of the field. This can be used to subset bands in
+WCS GetCoverage requests or WCPS queries.</p></li>
+<li><p><strong>is_quantity</strong> – Indicates whether this field is a Quantity (<code class="code docutils literal notranslate"><span class="pre">True</span></code>)
+or a Category (<code class="code docutils literal notranslate"><span class="pre">False</span></code>). Defaults to <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>definition</strong> – A URI that can be resolved to the complete human-readable
+definition of the property that is represented by the data component.</p></li>
+<li><p><strong>label</strong> – Short human-readable information about the data component.</p></li>
+<li><p><strong>description</strong> – A human-readable description of the data.</p></li>
+<li><p><strong>codespace</strong> – A URL to an external dictionary, taxonomy, or ontology
+representing the code space. This attribute is only set for category data,
+i.e., when <a class="reference internal" href="#wcs.model.Field.is_quantity" title="wcs.model.Field.is_quantity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">is_quantity</span></code></a> is <code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>uom</strong> – The unit of measure for this data.</p></li>
+<li><p><strong>nil_values</strong> – A list of nil values associated with this field.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Field.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/wcs/model.html#Field.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field.name" title="Link to this definition">¶</a></dt>
+<dd><p>Field name that can be used to subset bands in WCS GetCoverage or WCPS queries.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Field.is_quantity">
+<span class="sig-name descname"><span class="pre">is_quantity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Field.is_quantity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field.is_quantity" title="Link to this definition">¶</a></dt>
+<dd><p>True if this field is a Quantity, False if it’s a Category.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Field.definition">
+<span class="sig-name descname"><span class="pre">definition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Field.definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field.definition" title="Link to this definition">¶</a></dt>
+<dd><p>A URI that can be resolved to the complete human readable definition of the
+property that is represented by the data component.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Field.label">
+<span class="sig-name descname"><span class="pre">label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Field.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field.label" title="Link to this definition">¶</a></dt>
+<dd><p>Short human readable information about the data component.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Field.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Field.description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field.description" title="Link to this definition">¶</a></dt>
+<dd><p>Human-readable description of the data.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Field.codespace">
+<span class="sig-name descname"><span class="pre">codespace</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Field.codespace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field.codespace" title="Link to this definition">¶</a></dt>
+<dd><p>URL to an external dictionary, taxonomy or ontology representing the code space.
+Only set for category data, i.e. <a class="reference internal" href="#wcs.model.Field.is_quantity" title="wcs.model.Field.is_quantity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">is_quantity</span></code></a> is False.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Field.uom">
+<span class="sig-name descname"><span class="pre">uom</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Field.uom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field.uom" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of measure for this data.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.Field.nil_values">
+<span class="sig-name descname"><span class="pre">nil_values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wcs.model.NilValue" title="wcs.model.NilValue"><span class="pre">NilValue</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/wcs/model.html#Field.nil_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Field.nil_values" title="Link to this definition">¶</a></dt>
+<dd><p>A list of nil values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.model.NilValue">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NilValue</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#NilValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.NilValue" title="Link to this definition">¶</a></dt>
+<dd><p>Represents a null value with an optional reason.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nil_value</strong> – The null value itself, represented as a string.</p></li>
+<li><p><strong>reason</strong> – An optional explanation for why the value is null.
+This is useful for providing context or documentation about the null
+value.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.NilValue.nil_value">
+<span class="sig-name descname"><span class="pre">nil_value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/wcs/model.html#NilValue.nil_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.NilValue.nil_value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wcs.model.NilValue.reason">
+<span class="sig-name descname"><span class="pre">reason</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="reference internal" href="../../../_modules/wcs/model.html#NilValue.reason"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.NilValue.reason" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wcs.model.Crs">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Crs</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#Crs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Crs" title="Link to this definition">¶</a></dt>
+<dd><p>Utility class for handling CRS.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wcs.model.Crs.to_short_notation">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_short_notation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/model.html#Crs.to_short_notation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.Crs.to_short_notation" title="Link to this definition">¶</a></dt>
+<dd><p>Parse CRS identifiers in <a class="reference external" href="https://doc.rasdaman.org/05_geo-services-guide.html#crs-notation">this notation</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – <p>a CRS identifier, e.g.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://localhost:8080/rasdaman/def/crs/EPSG/0/4326">http://localhost:8080/rasdaman/def/crs/EPSG/0/4326</a></p></li>
+<li><p>EPSG/0/4326</p></li>
+<li><p>EPSG:4326</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Short CRS notation, e.g. EPSG:4326; None if input is None or the method
+fails to parse the url.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="wcs.model.WCSClientException">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WCSClientException</span></span><a class="reference internal" href="../../../_modules/wcs/model.html#WCSClientException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.model.WCSClientException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>An exception thrown by this library.</p>
+<p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">WCS Python Client</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#acknowledgments">Acknowledgments</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">wcs</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">API Reference</a><ul>
+  <li><a href="../index.html">wcs</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">wcs</a></li>
+      <li>Next: <a href="../parser/index.html" title="next chapter">wcs.parser</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, rasdaman team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

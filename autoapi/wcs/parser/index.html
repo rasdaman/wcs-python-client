@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>wcs.parser &#8212; WCS Python Client 0.2.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <script src="../../../_static/documentation_options.js?v=cb850272"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="wcs.service" href="../service/index.html" />
+    <link rel="prev" title="wcs.model" href="../model/index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-wcs.parser">
+<span id="wcs-parser"></span><h1>wcs.parser<a class="headerlink" href="#module-wcs.parser" title="Link to this heading">¶</a></h1>
+<p>Utility methods for parsing XML into <a class="reference internal" href="../model/index.html#module-wcs.model" title="wcs.model"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wcs.model</span></code></a> objects.</p>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.parse_describe_coverage" title="wcs.parser.parse_describe_coverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_describe_coverage</span></code></a>(xml_string)</p></td>
+<td><p>Parses an XML string from a DescribeCoverage response into a <a class="reference internal" href="../model/index.html#wcs.model.FullCoverage" title="wcs.model.FullCoverage"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.FullCoverage</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.parse_domain_set" title="wcs.parser.parse_domain_set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_domain_set</span></code></a>(domain_set_element)</p></td>
+<td><p>Parses an XML element representing a DomainSet into corresponding objects.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.parse_range_type" title="wcs.parser.parse_range_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_range_type</span></code></a>(range_type_element)</p></td>
+<td><p>Parses an XML element representing a RangeType into a <a class="reference internal" href="../model/index.html#wcs.model.RangeType" title="wcs.model.RangeType"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.RangeType</span></code></a> object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.parse_metadata" title="wcs.parser.parse_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_metadata</span></code></a>(metadata_element)</p></td>
+<td><p>Parse an XML Metadata element into a dictionary. Example XML structure:</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.parse_coverage_summaries" title="wcs.parser.parse_coverage_summaries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_coverage_summaries</span></code></a>(xml_string[, only_local])</p></td>
+<td><p>Parses CoverageSummary XML elements from a GetCapabilities XML string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.parse_coverage_summary" title="wcs.parser.parse_coverage_summary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_coverage_summary</span></code></a>(element[, only_local])</p></td>
+<td><p>Parses an XML element representing a Coverage Summary into a BasicCoverage object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.parse_wgs84_bounding_box" title="wcs.parser.parse_wgs84_bounding_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_wgs84_bounding_box</span></code></a>(element)</p></td>
+<td><p>Parses an XML element representing a WGS84 bounding box into a tuple of lon/lat</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.parse_bounding_box" title="wcs.parser.parse_bounding_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_bounding_box</span></code></a>(bbox_element[, crs])</p></td>
+<td><p>Parses an XML element representing a bounding box into a BoundingBox object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.parse_additional_parameters" title="wcs.parser.parse_additional_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_additional_parameters</span></code></a>(element)</p></td>
+<td><p>Parses additional parameters from an XML element into a dict of key/value strings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.parse_bounds_list" title="wcs.parser.parse_bounds_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_bounds_list</span></code></a>(element_text)</p></td>
+<td><p>Parses a space-separated string of axis bounds into a list of properly</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.parse_bound" title="wcs.parser.parse_bound"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_bound</span></code></a>(bound)</p></td>
+<td><p>Parses a given axis bound string into its appropriate data type.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.crs_to_crs_per_axis" title="wcs.parser.crs_to_crs_per_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">crs_to_crs_per_axis</span></code></a>(crs)</p></td>
+<td><p>Convert a single CRS to a list of CRS per axis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.get_child" title="wcs.parser.get_child"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_child</span></code></a>(element, tag[, throw_if_not_found])</p></td>
+<td><p>Retrieve a child element matching a given <code class="docutils literal notranslate"><span class="pre">tag</span></code> from an XML element.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.first_child" title="wcs.parser.first_child"><code class="xref py py-obj docutils literal notranslate"><span class="pre">first_child</span></code></a>(element[, expected_tag])</p></td>
+<td><p>Retrieve the first child element of an XML element.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.parse_tag_name" title="wcs.parser.parse_tag_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_tag_name</span></code></a>(element)</p></td>
+<td><p>Extract just the tag name of an XML element, removing namespace components.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.validate_tag_name" title="wcs.parser.validate_tag_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_tag_name</span></code></a>(element, expected_tag)</p></td>
+<td><p>Validate the tag name of an XML element against an expected tag.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wcs.parser.element_to_string" title="wcs.parser.element_to_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">element_to_string</span></code></a>(element)</p></td>
+<td><p>Serialize an XML element to a string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wcs.parser.element_to_dict" title="wcs.parser.element_to_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">element_to_dict</span></code></a>(t)</p></td>
+<td><p>Convert an XML element into a nested dictionary.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_describe_coverage">
+<span class="sig-name descname"><span class="pre">parse_describe_coverage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_describe_coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_describe_coverage" title="Link to this definition">¶</a></dt>
+<dd><p>Parses an XML string from a DescribeCoverage response into a <a class="reference internal" href="../model/index.html#wcs.model.FullCoverage" title="wcs.model.FullCoverage"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.FullCoverage</span></code></a>.</p>
+<p>It extracts essential information including the coverage name, metadata,
+domain set, and range type. The extracted data is used to construct and return
+a <a class="reference internal" href="../model/index.html#wcs.model.FullCoverage" title="wcs.model.FullCoverage"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.FullCoverage</span></code></a> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>xml_string</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><em>bytes</em></a><em>]</em>) – An XML string or bytes object containing the DescribeCoverage
+document. The XML should contain elements such as ‘CoverageDescription’,
+‘Metadata’, ‘DomainSet’, and ‘RangeType’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <a class="reference internal" href="../model/index.html#wcs.model.FullCoverage" title="wcs.model.FullCoverage"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.FullCoverage</span></code></a> object constructed from the parsed XML data.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the XML does not contain a valid ‘CoverageDescription’
+element or if the parsing process encounters any other issues.</p></li>
+<li><p><strong>ET.ParseError</strong> – If the XML string is malformed and cannot be parsed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="../model/index.html#wcs.model.FullCoverage" title="wcs.model.FullCoverage">wcs.model.FullCoverage</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_domain_set">
+<span class="sig-name descname"><span class="pre">parse_domain_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain_set_element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_domain_set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_domain_set" title="Link to this definition">¶</a></dt>
+<dd><p>Parses an XML element representing a DomainSet into corresponding objects.</p>
+<p>It extracts information about spatio-temporal regular/irregular axes, and constructs
+geo and grid <a class="reference internal" href="../model/index.html#wcs.model.BoundingBox" title="wcs.model.BoundingBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.BoundingBox</span></code></a> objects. Example XML structure:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;cis11:DomainSet&gt;</span>
+<span class="w">  </span><span class="nt">&lt;cis11:GeneralGrid</span>
+<span class="w">    </span><span class="na">srsName=</span><span class="s">&quot;https://www.opengis.net/def/crs-compound?</span>
+<span class="s">    1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;amp;</span>
+<span class="s">    2=https://www.opengis.net/def/crs/EPSG/0/4326&quot;</span>
+<span class="w">    </span><span class="na">axisLabels=</span><span class="s">&quot;ansi Lat Lon&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;cis11:RegularAxis</span><span class="w"> </span><span class="na">axisLabel=</span><span class="s">&quot;Lat&quot;</span><span class="w"> </span><span class="na">uomLabel=</span><span class="s">&quot;degree&quot;</span>
+<span class="w">      </span><span class="na">lowerBound=</span><span class="s">&quot;-90&quot;</span><span class="w"> </span><span class="na">upperBound=</span><span class="s">&quot;90&quot;</span><span class="w"> </span><span class="na">resolution=</span><span class="s">&quot;-0.1&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;cis11:RegularAxis</span><span class="w"> </span><span class="na">axisLabel=</span><span class="s">&quot;Lon&quot;</span><span class="w"> </span><span class="na">uomLabel=</span><span class="s">&quot;degree&quot;</span>
+<span class="w">      </span><span class="na">lowerBound=</span><span class="s">&quot;-180&quot;</span><span class="w"> </span><span class="na">upperBound=</span><span class="s">&quot;180&quot;</span><span class="w"> </span><span class="na">resolution=</span><span class="s">&quot;0.1&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;cis11:IrregularAxis</span><span class="w"> </span><span class="na">axisLabel=</span><span class="s">&quot;ansi&quot;</span><span class="w"> </span><span class="na">uomLabel=</span><span class="s">&quot;d&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;cis11:C&gt;</span>&quot;2000-02-01T00:00:00.000Z&quot;<span class="nt">&lt;/cis11:C&gt;</span>
+<span class="w">      </span><span class="nt">&lt;cis11:C&gt;</span>&quot;2000-03-01T00:00:00.000Z&quot;<span class="nt">&lt;/cis11:C&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/cis11:IrregularAxis&gt;</span>
+<span class="w">    </span><span class="nt">&lt;cis11:GridLimits</span>
+<span class="w">      </span><span class="na">srsName=</span><span class="s">&quot;http://www.opengis.net/def/crs/OGC/0/Index3D&quot;</span>
+<span class="w">      </span><span class="na">axisLabels=</span><span class="s">&quot;i j k&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;cis11:IndexAxis</span><span class="w"> </span><span class="na">axisLabel=</span><span class="s">&quot;i&quot;</span>
+<span class="w">        </span><span class="na">lowerBound=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="na">upperBound=</span><span class="s">&quot;184&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;cis11:IndexAxis</span><span class="w"> </span><span class="na">axisLabel=</span><span class="s">&quot;j&quot;</span>
+<span class="w">        </span><span class="na">lowerBound=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="na">upperBound=</span><span class="s">&quot;1799&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;cis11:IndexAxis</span><span class="w"> </span><span class="na">axisLabel=</span><span class="s">&quot;k&quot;</span>
+<span class="w">        </span><span class="na">lowerBound=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="na">upperBound=</span><span class="s">&quot;3599&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/cis11:GridLimits&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/cis11:GeneralGrid&gt;</span>
+<span class="nt">&lt;/cis11:DomainSet&gt;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>domain_set_element</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a><em>]</em>) – An XML element representing the DomainSet
+structure. It should contain one or more ‘cis11:GeneralGrid’ elements,
+which in turn include ‘cis11:RegularAxis’ or ‘cis11:IrregularAxis’ elements,
+and a ‘cis11:GridLimits’ element.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing geo and grid <code class="xref py py-class docutils literal notranslate"><span class="pre">BoundingBox</span></code> objects.
+If the input is None, the function returns (None, None).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the provided XML does not conform to the expected structure.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[Optional[<a class="reference internal" href="../model/index.html#wcs.model.BoundingBox" title="wcs.model.BoundingBox">wcs.model.BoundingBox</a>], Optional[<a class="reference internal" href="../model/index.html#wcs.model.BoundingBox" title="wcs.model.BoundingBox">wcs.model.BoundingBox</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_range_type">
+<span class="sig-name descname"><span class="pre">parse_range_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">range_type_element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_range_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_range_type" title="Link to this definition">¶</a></dt>
+<dd><p>Parses an XML element representing a RangeType into a <a class="reference internal" href="../model/index.html#wcs.model.RangeType" title="wcs.model.RangeType"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.RangeType</span></code></a> object.</p>
+<p>This function processes an XML element handling either
+‘swe:Category’ or ‘swe:Quantity’ fields within a ‘swe:DataRecord’.
+It extracts fields information such as field name, definition, label,
+description, codespace, unit of measurement, and nil values,
+constructing a list of <a class="reference internal" href="../model/index.html#wcs.model.Field" title="wcs.model.Field"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.Field</span></code></a> objects that are then encapsulated within
+a <a class="reference internal" href="../model/index.html#wcs.model.RangeType" title="wcs.model.RangeType"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.RangeType</span></code></a> object.</p>
+<p>Supported XML structures:</p>
+<ol class="arabic">
+<li><p><strong>swe:Category field</strong>:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;cis11:RangeType&gt;</span>
+<span class="w">  </span><span class="nt">&lt;swe:DataRecord&gt;</span>
+<span class="w">    </span><span class="nt">&lt;swe:field</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;land_use&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;swe:Category</span><span class="w"> </span><span class="na">definition=</span><span class="s">&quot;...&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;swe:label&gt;</span>National<span class="w"> </span>Land<span class="w"> </span>Use<span class="nt">&lt;/swe:label&gt;</span>
+<span class="w">        </span><span class="nt">&lt;swe:description&gt;</span>description<span class="w"> </span>text<span class="nt">&lt;/swe:description&gt;</span>
+<span class="w">        </span><span class="nt">&lt;swe:nilValues&gt;</span>
+<span class="w">          </span><span class="nt">&lt;swe:NilValues&gt;</span>
+<span class="w">            </span><span class="nt">&lt;swe:nilValue</span><span class="w"> </span><span class="na">reason=</span><span class="s">&quot;&quot;</span><span class="nt">&gt;</span>0<span class="nt">&lt;/swe:nilValue&gt;</span>
+<span class="w">          </span><span class="nt">&lt;/swe:NilValues&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/swe:nilValues&gt;</span>
+<span class="w">        </span><span class="nt">&lt;swe:codeSpace</span><span class="w"> </span><span class="na">xlink:href=</span><span class="s">&quot;....&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/swe:Category&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/swe:field&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/swe:DataRecord&gt;</span>
+<span class="nt">&lt;/cis11:RangeType&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>swe:Quantity field</strong>:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;cis11:RangeType&gt;</span>
+<span class="w">  </span><span class="nt">&lt;swe:DataRecord&gt;</span>
+<span class="w">    </span><span class="nt">&lt;swe:field</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;temperature&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;swe:Quantity</span><span class="w"> </span><span class="na">definition=</span><span class="s">&quot;...&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;swe:label&gt;</span>Monthly<span class="w"> </span>temperature<span class="nt">&lt;/swe:label&gt;</span>
+<span class="w">        </span><span class="nt">&lt;swe:description&gt;</span>description<span class="w"> </span>text<span class="nt">&lt;/swe:description&gt;</span>
+<span class="w">        </span><span class="nt">&lt;swe:nilValues&gt;</span>
+<span class="w">          </span><span class="nt">&lt;swe:NilValues&gt;</span>
+<span class="w">            </span><span class="nt">&lt;swe:nilValue</span><span class="w"> </span><span class="na">reason=</span><span class="s">&quot;&quot;</span><span class="nt">&gt;</span>-9999<span class="nt">&lt;/swe:nilValue&gt;</span>
+<span class="w">          </span><span class="nt">&lt;/swe:NilValues&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/swe:nilValues&gt;</span>
+<span class="w">        </span><span class="nt">&lt;swe:uom</span><span class="w"> </span><span class="na">code=</span><span class="s">&quot;°C&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/swe:Quantity&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/swe:field&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/swe:DataRecord&gt;</span>
+<span class="nt">&lt;/cis11:RangeType&gt;</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>range_type_element</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a><em>]</em>) – An XML element representing the RangeType
+structure. It should contain one or more ‘swe:DataRecord’ elements,
+each with ‘swe:field’ elements that can be either ‘swe:Category’ or
+‘swe:Quantity’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A RangeType object containing a list of Field objects. Each Field
+object represents either a ‘swe:Category’ or ‘swe:Quantity’ extracted
+from the XML, with associated metadata. If the input is None, then
+None is returned.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the provided XML does not conform to the expected structure.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[<a class="reference internal" href="../model/index.html#wcs.model.RangeType" title="wcs.model.RangeType">wcs.model.RangeType</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_metadata">
+<span class="sig-name descname"><span class="pre">parse_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_metadata" title="Link to this definition">¶</a></dt>
+<dd><p>Parse an XML Metadata element into a dictionary. Example XML structure:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;Metadata&gt;</span>
+<span class="w">  </span><span class="nt">&lt;covMetadata&gt;</span>
+<span class="w">    </span><span class="nt">&lt;title&gt;</span>Temperature<span class="nt">&lt;/title&gt;</span>
+<span class="w">    </span><span class="nt">&lt;abstract&gt;</span>Monthly<span class="w"> </span>average<span class="w"> </span>air<span class="w"> </span>temperature.<span class="nt">&lt;/abstract&gt;</span>
+<span class="w">    </span><span class="nt">&lt;description&gt;</span>Description.<span class="nt">&lt;/description&gt;</span>
+<span class="w">    </span><span class="nt">&lt;keywords&gt;</span>climate,<span class="w"> </span>temperature<span class="nt">&lt;/keywords&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/covMetadata&gt;</span>
+<span class="w">  </span><span class="nt">&lt;rasdamanCoverageMetadata&gt;</span>
+<span class="w">    </span><span class="nt">&lt;catalog&gt;</span>
+<span class="w">      </span><span class="nt">&lt;title&gt;</span>Temperature<span class="nt">&lt;/title&gt;</span>
+<span class="w">      </span><span class="nt">&lt;thumbnail&gt;</span>https://localhost/thumbnail.png<span class="nt">&lt;/thumbnail&gt;</span>
+<span class="w">      </span><span class="nt">&lt;description&gt;</span>Description.<span class="nt">&lt;/description&gt;</span>
+<span class="w">      </span><span class="nt">&lt;provenance</span><span class="w"> </span><span class="na">sourceUrl=</span><span class="s">&quot;https://localhost&quot;</span>
+<span class="w">        </span><span class="na">providerName=</span><span class="s">&quot;P&quot;</span><span class="w"> </span><span class="na">termsUrl=</span><span class="s">&quot;http://localhost&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ourTerms&gt;</span>https://localhost/#terms<span class="nt">&lt;/ourTerms&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/catalog&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/rasdamanCoverageMetadata&gt;</span>
+<span class="w">  </span><span class="nt">&lt;otherMetadata</span><span class="w"> </span><span class="na">role=</span><span class="s">&quot;https://codelists&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;Catalog&quot;</span>
+<span class="w">    </span><span class="na">href=</span><span class="s">&quot;https://localhost&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/Metadata&gt;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>metadata_element</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a><em>]</em>) – An XML element containing metadata information.
+This element is expected to have the tag ‘Metadata’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary representation of the metadata contained within the
+XML element. Nested elements are converted to nested dicts. Element attributes
+convert to key names starting with ‘&#64;’.
+If the input is <code class="docutils literal notranslate"><span class="pre">None</span></code> or an empty XML element, an empty dictionary is returned.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the root tag of <code class="docutils literal notranslate"><span class="pre">metadata_element</span></code> is not ‘Metadata’.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_coverage_summaries">
+<span class="sig-name descname"><span class="pre">parse_coverage_summaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_local</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_coverage_summaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_coverage_summaries" title="Link to this definition">¶</a></dt>
+<dd><p>Parses CoverageSummary XML elements from a GetCapabilities XML string.</p>
+<p>This function takes an XML string representing a GetCapabilities response,
+searches for the ‘Contents’ element, and extracts all ‘CoverageSummary’
+elements within it. Each ‘CoverageSummary’ element is parsed into a
+<a class="reference internal" href="../model/index.html#wcs.model.BasicCoverage" title="wcs.model.BasicCoverage"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.BasicCoverage</span></code></a> object using the
+<a class="reference internal" href="#wcs.parser.parse_coverage_summary" title="wcs.parser.parse_coverage_summary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_coverage_summary()</span></code></a> function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xml_string</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><em>bytes</em></a><em>]</em>) – A GetCapabilities XML string, provided as either a
+string or bytes object.</p></li>
+<li><p><strong>only_local</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – parse only local coverages, filtering out any remote coverages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of BasicCoverage objects, each representing a parsed
+CoverageSummary element from the XML.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the XML does not contain a ‘Contents’
+element, indicating an invalid GetCapabilities
+document.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[<a class="reference internal" href="../model/index.html#wcs.model.BasicCoverage" title="wcs.model.BasicCoverage">wcs.model.BasicCoverage</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_coverage_summary">
+<span class="sig-name descname"><span class="pre">parse_coverage_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_local</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_coverage_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_coverage_summary" title="Link to this definition">¶</a></dt>
+<dd><p>Parses an XML element representing a Coverage Summary into a BasicCoverage object.
+Example XML structure:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;wcs20:CoverageSummary&gt;</span>
+<span class="w">  </span><span class="nt">&lt;wcs20:CoverageId&gt;</span>AverageChloroColorScaled<span class="nt">&lt;/wcs20:CoverageId&gt;</span>
+<span class="w">  </span><span class="nt">&lt;wcs20:CoverageSubtype&gt;</span>ReferenceableGridCoverage
+<span class="w">  </span><span class="nt">&lt;/wcs20:CoverageSubtype&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ows:WGS84BoundingBox&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:LowerCorner&gt;</span>-180<span class="w"> </span>-90<span class="nt">&lt;/ows:LowerCorner&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:UpperCorner&gt;</span>180<span class="w"> </span>90<span class="nt">&lt;/ows:UpperCorner&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ows:WGS84BoundingBox&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ows:BoundingBox</span>
+<span class="w">    </span><span class="na">crs=</span><span class="s">&quot;https://www.opengis.net/def/crs-compound?</span>
+<span class="s">    1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;amp;</span>
+<span class="s">    2=https://www.opengis.net/def/crs/EPSG/0/4326&quot;</span>
+<span class="w">    </span><span class="na">dimensions=</span><span class="s">&quot;3&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:LowerCorner&gt;</span>
+<span class="w">        </span>&quot;2002-07-01T00:00:00.000Z&quot;<span class="w"> </span>-90<span class="w"> </span>-180
+<span class="w">    </span><span class="nt">&lt;/ows:LowerCorner&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:UpperCorner&gt;</span>
+<span class="w">        </span>&quot;2015-05-01T00:00:00.000Z&quot;<span class="w"> </span>90<span class="w"> </span>180
+<span class="w">    </span><span class="nt">&lt;/ows:UpperCorner&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ows:BoundingBox&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ows:AdditionalParameters&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:AdditionalParameter&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ows:Name&gt;</span>sizeInBytes<span class="nt">&lt;/ows:Name&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ows:Value&gt;</span>188325000<span class="nt">&lt;/ows:Value&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ows:AdditionalParameter&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:AdditionalParameter&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ows:Name&gt;</span>axisList<span class="nt">&lt;/ows:Name&gt;</span>
+<span class="w">      </span><span class="nt">&lt;ows:Value&gt;</span>ansi,Lat,Lon<span class="nt">&lt;/ows:Value&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ows:AdditionalParameter&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/ows:AdditionalParameters&gt;</span>
+<span class="nt">&lt;/wcs20:CoverageSummary&gt;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a><em>]</em>) – An XML element representing a CoverageSummary.
+it should contain ‘CoverageId’ and a ‘CoverageSubtype’, and optionally
+‘WGS84BoundingBox’, ‘BoundingBox’, and ‘AdditionalParameters’.</p></li>
+<li><p><strong>only_local</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – parse only local coverages, filtering out any remote coverages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A BasicCoverage object containing coverage information extracted from the XML,
+or None if <code class="docutils literal notranslate"><span class="pre">element</span></code> is None or <code class="docutils literal notranslate"><span class="pre">only_local</span></code> is True and the coverage is remote.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the coverage_summary_element does not have the
+expected tag, or is missing a ‘CoverageId’ element.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[<a class="reference internal" href="../model/index.html#wcs.model.BasicCoverage" title="wcs.model.BasicCoverage">wcs.model.BasicCoverage</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_wgs84_bounding_box">
+<span class="sig-name descname"><span class="pre">parse_wgs84_bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_wgs84_bounding_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_wgs84_bounding_box" title="Link to this definition">¶</a></dt>
+<dd><p>Parses an XML element representing a WGS84 bounding box into a tuple of lon/lat
+<a class="reference internal" href="../model/index.html#wcs.model.Axis" title="wcs.model.Axis"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.Axis</span></code></a> objects. Example XML structure:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ows:WGS84BoundingBox&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:LowerCorner&gt;</span>-180<span class="w"> </span>-90<span class="nt">&lt;/ows:LowerCorner&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:UpperCorner&gt;</span>180<span class="w"> </span>90<span class="nt">&lt;/ows:UpperCorner&gt;</span>
+<span class="nt">&lt;/ows:WGS84BoundingBox&gt;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>element</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a><em>]</em>) – A ‘WGS84BoundingBox’ XML element containing
+‘LowerCorner’ and ‘UpperCorner’ elements.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple of lon/lat <a class="reference internal" href="../model/index.html#wcs.model.Axis" title="wcs.model.Axis"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.Axis</span></code></a> objects, or None if the input element is None.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the element tag is not ‘WGS84BoundingBox’.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[<a class="reference internal" href="../model/index.html#wcs.model.Axis" title="wcs.model.Axis">wcs.model.Axis</a>, <a class="reference internal" href="../model/index.html#wcs.model.Axis" title="wcs.model.Axis">wcs.model.Axis</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_bounding_box">
+<span class="sig-name descname"><span class="pre">parse_bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_bounding_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_bounding_box" title="Link to this definition">¶</a></dt>
+<dd><p>Parses an XML element representing a bounding box into a BoundingBox object.
+Example XML structure:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ows:BoundingBox</span>
+<span class="w">  </span><span class="na">crs=</span><span class="s">&quot;https://www.opengis.net/def/crs-compound?</span>
+<span class="s">  1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;amp;</span>
+<span class="s">  2=https://www.opengis.net/def/crs/EPSG/0/4326&quot;</span><span class="w"> </span><span class="na">dimensions=</span><span class="s">&quot;3&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ows:LowerCorner&gt;</span>
+<span class="w">    </span>&quot;2002-07-01T00:00:00.000Z&quot;<span class="w"> </span>-90<span class="w"> </span>-180
+<span class="w">  </span><span class="nt">&lt;/ows:LowerCorner&gt;</span>
+<span class="w">  </span><span class="nt">&lt;ows:UpperCorner&gt;</span>
+<span class="w">    </span>&quot;2015-05-01T00:00:00.000Z&quot;<span class="w"> </span>90<span class="w"> </span>180
+<span class="w">  </span><span class="nt">&lt;/ows:UpperCorner&gt;</span>
+<span class="nt">&lt;/ows:BoundingBox&gt;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox_element</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a><em>]</em>) – An XML element representing the bounding box. It should
+contain ‘LowerCorner’ and ‘UpperCorner’ child elements.</p></li>
+<li><p><strong>crs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – An optional CRS identifier string. If not provided, the CRS is
+inferred from the ‘crs’ attribute of the bbox_element.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <a class="reference internal" href="../model/index.html#wcs.model.BoundingBox" title="wcs.model.BoundingBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.BoundingBox</span></code></a> object containing the parsed CRS and axis
+lower/upper bounds.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the parsing of ‘LowerCorner’ or ‘UpperCorner’ elements fails.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[<a class="reference internal" href="../model/index.html#wcs.model.BoundingBox" title="wcs.model.BoundingBox">wcs.model.BoundingBox</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_additional_parameters">
+<span class="sig-name descname"><span class="pre">parse_additional_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_additional_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_additional_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Parses additional parameters from an XML element into a dict of key/value strings.
+Example XML structure:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ows:AdditionalParameters&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:AdditionalParameter&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ows:Name&gt;</span>sizeInBytes<span class="nt">&lt;/ows:Name&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ows:Value&gt;</span>188325000<span class="nt">&lt;/ows:Value&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ows:AdditionalParameter&gt;</span>
+<span class="w">    </span><span class="nt">&lt;ows:AdditionalParameter&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ows:Name&gt;</span>axisList<span class="nt">&lt;/ows:Name&gt;</span>
+<span class="w">        </span><span class="nt">&lt;ows:Value&gt;</span>ansi,Lat,Lon<span class="nt">&lt;/ows:Value&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/ows:AdditionalParameter&gt;</span>
+<span class="nt">&lt;/ows:AdditionalParameters&gt;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a>) – An XML element containing ‘AdditionalParameter’ child elements.
+Each ‘AdditionalParameter’ element is expected to contain a ‘Name’
+and a ‘Value’ sub-element.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary mapping parameter names to their values.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If an unexpected element is found,
+or if ‘Name’ or ‘Value’ elements are missing.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_bounds_list">
+<span class="sig-name descname"><span class="pre">parse_bounds_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_bounds_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_bounds_list" title="Link to this definition">¶</a></dt>
+<dd><p>Parses a space-separated string of axis bounds into a list of properly
+typed bound values. Each string bound is parsed with <a class="reference internal" href="#wcs.parser.parse_bound" title="wcs.parser.parse_bound"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_bound()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>element_text</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – A space-separated string containing bound values.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of parsed bounds, where each bound is of type <code class="xref py py-attr docutils literal notranslate"><span class="pre">BoundType</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If any bound in the list cannot be parsed into
+a supported type by <a class="reference internal" href="#wcs.parser.parse_bound" title="wcs.parser.parse_bound"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_bound()</span></code></a>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[wcs.model.BoundType]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_bound">
+<span class="sig-name descname"><span class="pre">parse_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bound</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_bound" title="Link to this definition">¶</a></dt>
+<dd><p>Parses a given axis bound string into its appropriate data type.</p>
+<p>The method attempts to interpret the input <code class="docutils literal notranslate"><span class="pre">bound</span></code> in several formats:</p>
+<ul class="simple">
+<li><p>A string representing a datetime in ISO 8601 format.</p></li>
+<li><p>A raw string if it starts with a “ but failed to parse as a datetime.</p></li>
+<li><p>A string representing an integer.</p></li>
+<li><p>A string representing a float.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bound</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – A string representing the bound value to be parsed. It can be
+a string datetime in ISO 8601 format (optionally in double quotes),
+an integer, or a float.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The parsed bound in its appropriate data type.
+Returns <cite>None`</cite> if the input is <cite>None`</cite>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the <cite>bound`</cite> cannot be parsed into any of the supported types.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[wcs.model.BoundType]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.crs_to_crs_per_axis">
+<span class="sig-name descname"><span class="pre">crs_to_crs_per_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#crs_to_crs_per_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.crs_to_crs_per_axis" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a single CRS to a list of CRS per axis.
+If <code class="docutils literal notranslate"><span class="pre">crs</span></code> contains crs-compound, i.e. it is a compund CRS, then it is split first
+into it’s component CRS. For each crs then,
+- it is added twice into the result list if ‘EPSG’ is contained in it
+- otherwise, it is added once into the result list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a list of CRS per axis, or an empty list if crs is None.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>crs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.get_child">
+<span class="sig-name descname"><span class="pre">get_child</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">throw_if_not_found</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#get_child"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.get_child" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve a child element matching a given <code class="docutils literal notranslate"><span class="pre">tag</span></code> from an XML element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a>) – The XML element to search for a child with the specified tag.
+The tags of child elements are parsed to remove namespaces before comparison
+with the <code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_parse_tag_name()</span></code> method.</p></li>
+<li><p><strong>tag</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The tag name of the child element to search for; it should not
+include any namespaces.</p></li>
+<li><p><strong>throw_if_not_found</strong> – If True, raises an exception when no matching child is found.
+If False, returns None instead.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The first child element with the specified tag, or None if not found
+<code class="docutils literal notranslate"><span class="pre">throw_if_not_found</span></code> is False.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If no child with the specified tag is found and
+<code class="docutils literal notranslate"><span class="pre">throw_if_not_found</span></code> is True.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)">xml.etree.ElementTree.Element</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.first_child">
+<span class="sig-name descname"><span class="pre">first_child</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#first_child"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.first_child" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve the first child element of an XML element.</p>
+<p>Optionally, it can validate the tag of the first child against an expected
+tag (without any namespaces). If no children are present, it raises a
+<a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.WCSClientException</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a>) – The XML element whose first child is to be retrieved.</p></li>
+<li><p><strong>expected_tag</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The expected tag name of the first child element.
+If provided, the function will validate the tag of the first child.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The first child element of the given XML element.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the element has no children or if the tag of the
+first child does not match the expected tag.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)">xml.etree.ElementTree.Element</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.parse_tag_name">
+<span class="sig-name descname"><span class="pre">parse_tag_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#parse_tag_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.parse_tag_name" title="Link to this definition">¶</a></dt>
+<dd><p>Extract just the tag name of an XML element, removing namespace components.
+Example: “{<a class="reference external" href="http://www.example.com">http://www.example.com</a>}root” -&gt; “root”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>element</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – An XML element from which to extract the tag name.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The tag name of the element.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.validate_tag_name">
+<span class="sig-name descname"><span class="pre">validate_tag_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#validate_tag_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.validate_tag_name" title="Link to this definition">¶</a></dt>
+<dd><p>Validate the tag name of an XML element against an expected tag.</p>
+<p>This function checks if the tag name of the given XML element matches the
+expected tag. It uses the <a class="reference internal" href="#wcs.parser.parse_tag_name" title="wcs.parser.parse_tag_name"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_tag_name()</span></code></a> function to remove any
+namespaces in the tag name. If the tag names do not match, it raises a
+<a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">wcs.model.WCSClientException</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a>) – The XML element whose tag name is to be validated.</p></li>
+<li><p><strong>expected_tag</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The expected tag name to validate against.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="../model/index.html#wcs.model.WCSClientException" title="wcs.model.WCSClientException"><strong>WCSClientException</strong></a> – If the tag name of the <code class="docutils literal notranslate"><span class="pre">element</span></code> does not match the
+expected tag.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.element_to_string">
+<span class="sig-name descname"><span class="pre">element_to_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#element_to_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.element_to_string" title="Link to this definition">¶</a></dt>
+<dd><p>Serialize an XML element to a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a>) – The XML element to serialize.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Unicode string representation of the XML element.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wcs.parser.element_to_dict">
+<span class="sig-name descname"><span class="pre">element_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/wcs/parser.html#element_to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wcs.parser.element_to_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Convert an XML element into a nested dictionary.</p>
+<p>This function recursively converts an XML element and its children into a
+nested dictionary. The keys of the dictionary are the tag names of the XML
+elements. Attributes of the XML elements are prefixed with ‘&#64;’ in the
+dictionary keys, and text content is stored under a ‘#text’ key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.13)"><em>xml.etree.ElementTree.Element</em></a>) – The XML element to convert.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A nested dictionary representing the structure and content of the XML element.</p>
+</dd>
+<dt class="field-odd">Note<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>Elements with multiple children having the same tag name are converted into lists.</p></li>
+<li><p>Text content is only added to the dictionary if the element has children
+or attributes, to avoid overwriting important data with whitespace.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">WCS Python Client</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#acknowledgments">Acknowledgments</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">wcs</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">API Reference</a><ul>
+  <li><a href="../index.html">wcs</a><ul>
+      <li>Previous: <a href="../model/index.html" title="previous chapter">wcs.model</a></li>
+      <li>Next: <a href="../service/index.html" title="next chapter">wcs.service</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, rasdaman team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
