@@ -58,7 +58,7 @@ def parse_describe_coverage(xml_string: Union[str, bytes]) -> FullCoverage:
     return FullCoverage(name, bbox=geo_bbox, grid_bbox=grid_bbox, range_type=range_type, metadata=metadata)
 
 
-def parse_domain_set(domain_set_element: Optional[ET]) -> tuple[Optional[BoundingBox], Optional[BoundingBox]]:
+def parse_domain_set(domain_set_element: Optional[ET.Element]) -> tuple[Optional[BoundingBox], Optional[BoundingBox]]:
     """
     Parses an XML element representing a DomainSet into corresponding objects.
 
@@ -159,7 +159,7 @@ def parse_domain_set(domain_set_element: Optional[ET]) -> tuple[Optional[Boundin
     return BoundingBox(geo_axes, crs), BoundingBox(grid_axes, None)
 
 
-def parse_range_type(range_type_element: Optional[ET]) -> Optional[RangeType]:
+def parse_range_type(range_type_element: Optional[ET.Element]) -> Optional[RangeType]:
     """
     Parses an XML element representing a RangeType into a :class:`wcs.model.RangeType` object.
 
@@ -265,7 +265,7 @@ def parse_range_type(range_type_element: Optional[ET]) -> Optional[RangeType]:
     return RangeType(fields)
 
 
-def parse_metadata(metadata_element: Optional[ET]) -> dict:
+def parse_metadata(metadata_element: Optional[ET.Element]) -> dict:
     """
     Parse an XML Metadata element into a dictionary. Example XML structure:
 
@@ -359,7 +359,7 @@ def parse_coverage_summaries(xml_string: Union[str, bytes], only_local: bool = F
     return ret
 
 
-def parse_coverage_summary(element: Optional[ET], only_local: bool = False) -> Optional[BasicCoverage]:
+def parse_coverage_summary(element: Optional[ET.Element], only_local: bool = False) -> Optional[BasicCoverage]:
     """
     Parses an XML element representing a Coverage Summary into a BasicCoverage object.
     Example XML structure:
@@ -455,7 +455,7 @@ def parse_coverage_summary(element: Optional[ET], only_local: bool = False) -> O
                          additional_params=params)
 
 
-def parse_wgs84_bounding_box(element: Optional[ET]) -> Optional[tuple[Axis, Axis]]:
+def parse_wgs84_bounding_box(element: Optional[ET.Element]) -> Optional[tuple[Axis, Axis]]:
     """
     Parses an XML element representing a WGS84 bounding box into a tuple of lon/lat
     :class:`wcs.model.Axis` objects. Example XML structure:
@@ -486,7 +486,7 @@ def parse_wgs84_bounding_box(element: Optional[ET]) -> Optional[tuple[Axis, Axis
     return axes[0], axes[1]
 
 
-def parse_bounding_box(bbox_element: Optional[ET], crs: str = None) -> Optional[BoundingBox]:
+def parse_bounding_box(bbox_element: Optional[ET.Element], crs: str = None) -> Optional[BoundingBox]:
     """
     Parses an XML element representing a bounding box into a BoundingBox object.
     Example XML structure:
@@ -544,7 +544,7 @@ def parse_bounding_box(bbox_element: Optional[ET], crs: str = None) -> Optional[
     return BoundingBox(axes, crs)
 
 
-def parse_additional_parameters(element: ET) -> dict[str, str]:
+def parse_additional_parameters(element: ET.Element) -> dict[str, str]:
     """
     Parses additional parameters from an XML element into a dict of key/value strings.
     Example XML structure:
@@ -641,8 +641,12 @@ def parse_bound(bound: Optional[str]) -> Optional[BoundType]:
 
     # attempt to parse as a datetime
     try:
-        return datetime.fromisoformat(bound)
-    except ValueError:
+        tmp = bound
+        # python 3.10 cannot handle a date ending with Z
+        if tmp.endswith('Z'):
+            tmp = tmp[:-1] + '+00:00'
+        return datetime.fromisoformat(tmp)
+    except ValueError as e:
         pass
 
     if is_string:
@@ -698,7 +702,7 @@ def crs_to_crs_per_axis(crs: str) -> list[str]:
 # ---------------------------------------------------------------------------------------
 
 
-def get_child(element: ET, tag: str, throw_if_not_found=True) -> Optional[ET]:
+def get_child(element: ET.Element, tag: str, throw_if_not_found=True) -> Optional[ET.Element]:
     """
     Retrieve a child element matching a given ``tag`` from an XML element.
 
@@ -727,7 +731,7 @@ def get_child(element: ET, tag: str, throw_if_not_found=True) -> Optional[ET]:
     return None
 
 
-def first_child(element: ET, expected_tag: str = None) -> Optional[ET]:
+def first_child(element: ET.Element, expected_tag: str = None) -> Optional[ET.Element]:
     """
     Retrieve the first child element of an XML element.
 
@@ -751,7 +755,7 @@ def first_child(element: ET, expected_tag: str = None) -> Optional[ET]:
     raise WCSClientException(f'Element {parse_tag_name(element)} has no child element.')
 
 
-def parse_tag_name(element: Union[ET, str]) -> str:
+def parse_tag_name(element: Union[ET.Element, str]) -> str:
     """
     Extract just the tag name of an XML element, removing namespace components.
     Example: "{http://www.example.com}root" -> "root"
@@ -767,7 +771,7 @@ def parse_tag_name(element: Union[ET, str]) -> str:
     return element.split('}')[-1]
 
 
-def validate_tag_name(element: ET, expected_tag: str):
+def validate_tag_name(element: ET.Element, expected_tag: str):
     """
     Validate the tag name of an XML element against an expected tag.
 
@@ -787,7 +791,7 @@ def validate_tag_name(element: ET, expected_tag: str):
         raise WCSClientException(f"Expected a {expected_tag} element, but got {tag}")
 
 
-def element_to_string(element: ET) -> str:
+def element_to_string(element: ET.Element) -> str:
     """
     Serialize an XML element to a string.
 
@@ -797,7 +801,7 @@ def element_to_string(element: ET) -> str:
     return ET.tostring(element, encoding='unicode', method='xml')
 
 
-def element_to_dict(t: ET) -> dict:
+def element_to_dict(t: ET.Element) -> dict:
     """
     Convert an XML element into a nested dictionary.
 
