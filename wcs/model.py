@@ -34,11 +34,11 @@ class BasicCoverage:
 
     def __init__(self,
                  name: str,
-                 subtype: str = None,
-                 bbox: BoundingBox = None,
-                 lon_lat: tuple[Axis, Axis] = None,
-                 size_bytes: int = None,
-                 additional_params: dict[str, str] = None):
+                 subtype: Optional[str] = None,
+                 bbox: Optional[BoundingBox] = None,
+                 lon_lat: Optional[tuple[Axis, Axis]] = None,
+                 size_bytes: Optional[int] = None,
+                 additional_params: Optional[dict[str, str]] = None):
         self.name = name
         """Coverage name"""
         self.subtype = subtype
@@ -66,6 +66,9 @@ class BasicCoverage:
             additional_params = _dict_to_yaml(self.additional_params, 4)
             ret += f'\n  additional params:\n{additional_params}'
         return ret
+
+    def __hash__(self):
+        return hash(self.name)
 
     def is_local(self) -> bool:
         """
@@ -96,7 +99,7 @@ class FullCoverage:
                  bbox: BoundingBox,
                  grid_bbox: BoundingBox,
                  range_type: RangeType,
-                 metadata: dict = None):
+                 metadata: Optional[dict] = None):
         self.name = name
         self.bbox = bbox
         self.grid_bbox = grid_bbox
@@ -116,6 +119,23 @@ class FullCoverage:
             metadata = textwrap.indent(metadata, ' ' * 4)
             ret += f'\n  metadata:\n{metadata}'
         return ret
+
+    def to_short_str(self):
+        ret = self.name + ':'
+        if self.bbox is not None:
+            ret += f'\n{self.bbox.to_short_str()}'
+        if self.grid_bbox is not None:
+            ret += f'\n{self.grid_bbox.to_short_str()}'
+        if self.range_type is not None:
+            ret += f'\n{self.range_type.to_short_str()}'
+        if len(self.metadata) > 0:
+            metadata = _dict_to_yaml(self.metadata, filter_keys=['areasOfValidity'])
+            metadata = textwrap.indent(metadata, ' ' * 4)
+            ret += f'\n  metadata:\n{metadata}'
+        return ret
+
+    def __hash__(self):
+        return hash(self.name)
 
     def is_local(self) -> bool:
         """
@@ -183,6 +203,33 @@ class Axis:
             coefficients = coefficients.strip()
             ret += f'{indent}coefficients: {coefficients}'
         return ret
+
+    def to_short_str(self):
+        indent = '\n    '
+        ret = f'{indent}{self.name}:'
+
+        if self.resolution is not None:
+            ret += ' regular axis'
+        elif self.coefficients is not None:
+            ret += ' irregular axis'
+
+        ret += f' from {_bound_to_str(self.low)} to {_bound_to_str(self.high)}'
+        if self.resolution is not None:
+            ret += f' resolution {self.resolution}'
+        if self.uom is not None:
+            ret += f', uom {self.uom}'
+        if self.coefficients is not None:
+            if len(self.coefficients) > 6:
+                coefficients = ', '.join([_bound_to_str(c) for c in self.coefficients[0:3]])
+                coefficients += ', ..., '
+                coefficients += ', '.join([_bound_to_str(c) for c in self.coefficients[-4:-1]])
+            else:
+                coefficients = ', '.join([_bound_to_str(c) for c in self.coefficients])
+            ret += f', coefficients: {coefficients}'
+        return ret
+
+    def __hash__(self):
+        return hash(self.name)
 
     def is_temporal(self) -> bool:
         """
@@ -267,7 +314,7 @@ class Axis:
         :return: a list of coefficients, automatically generated if this
             is a regular axis.
         """
-        if self.is_irregular():
+        if self.is_irregular() or self.is_temporal():
             return self.coefficients
         if not self.is_regular():
             raise WCSClientException(f"{self.name} is not a regular or irregular "
@@ -297,10 +344,8 @@ class BoundingBox:
     :param crs: native CRS of the axis coordinates
     :param axes: a list of :class:`Axis` objects
     """
-
-    def __init__(self, axes: list[Axis], crs: Optional[str]):
-        self.axes = axes
-        self.crs = crs
+    axes: list[Axis]
+    crs: Optional[str]
 
     def __str__(self):
         bbox_type = 'grid_bbox'
@@ -309,6 +354,15 @@ class BoundingBox:
             ret += f'  crs: {Crs.to_short_notation(self.crs)}\n'
             bbox_type = 'bbox'
         ret += f'  {bbox_type}:{_list_to_str(self.axes, "")}'
+        return ret
+
+    def to_short_str(self) -> str:
+        bbox_type = 'grid_bbox'
+        ret = ''
+        if self.crs is not None:
+            ret += f'  crs: {Crs.to_short_notation(self.crs)}\n'
+            bbox_type = 'bbox'
+        ret += f'  {bbox_type}:{_list_to_short_str(self.axes, "")}'
         return ret
 
     def __getitem__(self, index: Union[int, str]) -> Axis:
@@ -340,7 +394,10 @@ class BoundingBox:
         :raise KeyError: if the axis name is not found, the axis index
             is out of bounds, or the ``item`` is not an int or string.
         """
-        return self.__getitem__(item)
+        try:
+            return self.__getitem__(item)
+        except KeyError as e:
+            raise AttributeError(e.args[0])
 
 
 @dataclass
@@ -360,15 +417,16 @@ class RangeType:
     :param fields: A list of :class:`Field` objects describing the fields (also
                    known as bands or channels) of a coverage.
     """
-
-    def __init__(self, fields):
-        self.fields: list[Field] = fields
-        """
-        A list of :class:`Field` objects corresponding to the bands of the coverage.
-        """
+    # coverage bands
+    fields: list[Field]
 
     def __str__(self):
         fields = _list_to_str(self.fields, '')
+        ret = f'  range_type:{fields}'
+        return ret
+
+    def to_short_str(self):
+        fields = _list_to_short_str(self.fields, '')
         ret = f'  range_type:{fields}'
         return ret
 
@@ -401,7 +459,10 @@ class RangeType:
         :raise KeyError: if the field name is not found, the fields index
             is out of bounds, or the ``item`` is not an int or string.
         """
-        return self.__getitem__(item)
+        try:
+            return self.__getitem__(item)
+        except KeyError as e:
+            raise AttributeError(e.args[0])
 
 
 @dataclass
@@ -465,6 +526,20 @@ class Field:
         if self.uom is not None:
             ret += f'{indent}uom: {self.uom}'
         return ret
+
+    def to_short_str(self):
+        indent = '\n    '
+
+        nil_str = ''
+        if self.nil_values is not None:
+            nil_str = f', nodata: {_list_to_str(self.nil_values, ",")}'
+
+        ret = f'{indent}{self.name}: {self.label} ({self.uom}{nil_str}) - {self.description}'
+        indent += '  '
+        return ret
+
+    def __hash__(self):
+        return hash(self.name)
 
 
 @dataclass
@@ -587,10 +662,25 @@ def _list_to_str(lst: list, sep: str) -> str:
     return sep.join([str(item) for item in lst])
 
 
+def _list_to_short_str(lst: list, sep: str) -> str:
+    """
+    Convert a list of items into a single string. Each item is converted to a string
+    and separated by a specified separator in the result.
+
+    :param lst: The list of items to be joined into a string. Each item in the list
+                will be converted to a string before joining.
+    :param sep: The separator to use between each item in the resulting string.
+
+    :return: A single string containing all items from the list, separated by the
+             specified separator.
+    """
+    return sep.join([item.to_short_str() for item in lst])
+
+
 _SPECIAL_CHARS_PATTERN = re.compile(r'[\s:{}\[\]()*&|><#%@,?\\=!]')
 
 
-def _dict_to_yaml(d, indent=0):
+def _dict_to_yaml(d, indent=0, filter_keys=[]):
     """
     Convert a nested Python dictionary to a YAML-formatted string.
 
@@ -609,6 +699,8 @@ def _dict_to_yaml(d, indent=0):
     """
     yaml_str = ""
     for key, value in d.items():
+        if str(key) in filter_keys:
+            continue
         # quote the key if needed
         if any(c in key for c in ' \t') or \
             _SPECIAL_CHARS_PATTERN.search(key) or \
@@ -617,13 +709,13 @@ def _dict_to_yaml(d, indent=0):
             key = '"' + key + '"'
 
         if isinstance(value, dict):
-            yaml_str += " " * indent + str(key) + ":\n" + _dict_to_yaml(value, indent + 2)
+            yaml_str += " " * indent + str(key) + ":\n" + _dict_to_yaml(value, indent + 2, filter_keys)
         elif isinstance(value, list):
             yaml_str += " " * indent + str(key) + ":\n"
             for item in value:
                 yaml_str += " " * (indent + 2) + "- "
                 if isinstance(item, dict):
-                    yaml_str += "\n" + _dict_to_yaml(item, indent + 4)
+                    yaml_str += "\n" + _dict_to_yaml(item, indent + 4, filter_keys)
                 else:
                     yaml_str += str(item) + "\n"
         else:

@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     "Operating System :: OS Independent",
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Topic :: Database :: Front-Ends",
     "Topic :: Scientific/Engineering :: GIS",
     "Topic :: Software Development :: Libraries",

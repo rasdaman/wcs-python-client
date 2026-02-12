@@ -3,7 +3,7 @@ Utility methods for parsing XML into :mod:`wcs.model` objects.
 """
 import xml.etree.ElementTree as ET
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Union, Optional
 from urllib.parse import urlparse, parse_qs
 
@@ -645,8 +645,12 @@ def parse_bound(bound: Optional[str]) -> Optional[BoundType]:
         # python 3.10 cannot handle a date ending with Z
         if tmp.endswith('Z'):
             tmp = tmp[:-1] + '+00:00'
-        return datetime.fromisoformat(tmp)
-    except ValueError as e:
+        dt = datetime.fromisoformat(tmp)
+        # set UTC timezone by default, to ensure we don't return naive datetime
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
         pass
 
     if is_string:
@@ -766,7 +770,7 @@ def parse_tag_name(element: Union[ET.Element, str]) -> str:
     if isinstance(element, ET.Element):
         element = element.tag
     elif not isinstance(element, str):
-        raise WCSClientException(f"Cannot parse tag name, but expected xml.etree.ElementTree.Element"
+        raise WCSClientException(f"Cannot parse tag name, expected xml.etree.ElementTree.Element"
                                  f" or string argument, but got {element.__class__}.")
     return element.split('}')[-1]
 

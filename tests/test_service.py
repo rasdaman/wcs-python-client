@@ -156,3 +156,23 @@ def test_list_full_info2():
     cov = service.list_full_info('dominant_leaf_type_20m')
     catalog_link = cov.metadata['fairicubeMetadata']['@href']
     assert catalog_link == "https://stacapi.eoxhub.fairicube.eu/collections/index/items/dominant_leaf_type_20m"
+
+def test_to_short_str():
+    service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
+    cov = service.list_full_info('AvgLandTemp')
+    expected = '''AvgLandTemp:
+  crs: OGC:AnsiDate+EPSG:4326
+  bbox:
+    ansi: irregular axis from "2000-02-01" to "2015-06-01", uom d, coefficients: "2000-02-01", "2000-03-01", "2000-04-01", ..., "2015-03-01", "2015-04-01", "2015-05-01"
+    Lat: regular axis from -90 to 90 resolution -0.1, uom degree
+    Lon: regular axis from -180 to 180 resolution 0.1, uom degree
+  grid_bbox:
+    i: regular axis from 0 to 184 resolution 1
+    j: regular axis from 0 to 1799 resolution 1
+    k: regular axis from 0 to 3599 resolution 1
+  range_type:
+    Gray: Gray (10^0, nodata: 99999) - None
+  metadata:
+    covMetadata: None
+'''
+    assert cov.to_short_str() == expected
