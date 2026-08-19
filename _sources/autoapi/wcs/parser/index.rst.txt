@@ -1,0 +1,482 @@
+wcs.parser
+==========
+
+.. py:module:: wcs.parser
+
+.. autoapi-nested-parse::
+
+   Utility methods for parsing XML into :mod:`wcs.model` objects.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   wcs.parser.parse_describe_coverage
+   wcs.parser.parse_domain_set
+   wcs.parser.parse_range_type
+   wcs.parser.parse_metadata
+   wcs.parser.parse_coverage_summaries
+   wcs.parser.parse_coverage_summary
+   wcs.parser.parse_wgs84_bounding_box
+   wcs.parser.parse_bounding_box
+   wcs.parser.parse_additional_parameters
+   wcs.parser.parse_bounds_list
+   wcs.parser.parse_bound
+   wcs.parser.crs_to_crs_per_axis
+   wcs.parser.get_child
+   wcs.parser.first_child
+   wcs.parser.parse_tag_name
+   wcs.parser.validate_tag_name
+   wcs.parser.element_to_string
+   wcs.parser.element_to_dict
+
+
+Module Contents
+---------------
+
+.. py:function:: parse_describe_coverage(xml_string)
+
+   Parses an XML string from a DescribeCoverage response into a :class:`wcs.model.FullCoverage`.
+
+   It extracts essential information including the coverage name, metadata,
+   domain set, and range type. The extracted data is used to construct and return
+   a :class:`wcs.model.FullCoverage` object.
+
+   :param xml_string: An XML string or bytes object containing the DescribeCoverage
+       document. The XML should contain elements such as 'CoverageDescription',
+       'Metadata', 'DomainSet', and 'RangeType'.
+
+   :return: A :class:`wcs.model.FullCoverage` object constructed from the parsed XML data.
+
+   :raises WCSClientException: If the XML does not contain a valid 'CoverageDescription'
+       element or if the parsing process encounters any other issues.
+   :raises ET.ParseError: If the XML string is malformed and cannot be parsed.
+
+
+.. py:function:: parse_domain_set(domain_set_element)
+
+   Parses an XML element representing a DomainSet into corresponding objects.
+
+   It extracts information about spatio-temporal regular/irregular axes, and constructs
+   geo and grid :class:`wcs.model.BoundingBox` objects. Example XML structure:
+
+   .. code:: xml
+
+       <cis11:DomainSet>
+         <cis11:GeneralGrid
+           srsName="https://www.opengis.net/def/crs-compound?
+           1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;
+           2=https://www.opengis.net/def/crs/EPSG/0/4326"
+           axisLabels="ansi Lat Lon">
+           <cis11:RegularAxis axisLabel="Lat" uomLabel="degree"
+             lowerBound="-90" upperBound="90" resolution="-0.1"/>
+           <cis11:RegularAxis axisLabel="Lon" uomLabel="degree"
+             lowerBound="-180" upperBound="180" resolution="0.1"/>
+           <cis11:IrregularAxis axisLabel="ansi" uomLabel="d">
+             <cis11:C>"2000-02-01T00:00:00.000Z"</cis11:C>
+             <cis11:C>"2000-03-01T00:00:00.000Z"</cis11:C>
+           </cis11:IrregularAxis>
+           <cis11:GridLimits
+             srsName="http://www.opengis.net/def/crs/OGC/0/Index3D"
+             axisLabels="i j k">
+             <cis11:IndexAxis axisLabel="i"
+               lowerBound="0" upperBound="184"/>
+             <cis11:IndexAxis axisLabel="j"
+               lowerBound="0" upperBound="1799"/>
+             <cis11:IndexAxis axisLabel="k"
+               lowerBound="0" upperBound="3599"/>
+           </cis11:GridLimits>
+         </cis11:GeneralGrid>
+       </cis11:DomainSet>
+
+   :param domain_set_element: An XML element representing the DomainSet
+       structure. It should contain one or more 'cis11:GeneralGrid' elements,
+       which in turn include 'cis11:RegularAxis' or 'cis11:IrregularAxis' elements,
+       and a 'cis11:GridLimits' element.
+
+   :return: A tuple containing geo and grid :class:`BoundingBox` objects.
+       If the input is None, the function returns (None, None).
+
+   :raises WCSClientException: If the provided XML does not conform to the expected structure.
+
+
+.. py:function:: parse_range_type(range_type_element)
+
+   Parses an XML element representing a RangeType into a :class:`wcs.model.RangeType` object.
+
+   This function processes an XML element handling either
+   'swe:Category' or 'swe:Quantity' fields within a 'swe:DataRecord'.
+   It extracts fields information such as field name, definition, label,
+   description, codespace, unit of measurement, and nil values,
+   constructing a list of :class:`wcs.model.Field` objects that are then encapsulated within
+   a :class:`wcs.model.RangeType` object.
+
+   Supported XML structures:
+
+   1. **swe:Category field**:
+
+      .. code:: xml
+
+           <cis11:RangeType>
+             <swe:DataRecord>
+               <swe:field name="land_use">
+                 <swe:Category definition="...">
+                   <swe:label>National Land Use</swe:label>
+                   <swe:description>description text</swe:description>
+                   <swe:nilValues>
+                     <swe:NilValues>
+                       <swe:nilValue reason="">0</swe:nilValue>
+                     </swe:NilValues>
+                   </swe:nilValues>
+                   <swe:codeSpace xlink:href="...."/>
+                 </swe:Category>
+               </swe:field>
+             </swe:DataRecord>
+           </cis11:RangeType>
+
+   2. **swe:Quantity field**:
+
+      .. code:: xml
+
+           <cis11:RangeType>
+             <swe:DataRecord>
+               <swe:field name="temperature">
+                 <swe:Quantity definition="...">
+                   <swe:label>Monthly temperature</swe:label>
+                   <swe:description>description text</swe:description>
+                   <swe:nilValues>
+                     <swe:NilValues>
+                       <swe:nilValue reason="">-9999</swe:nilValue>
+                     </swe:NilValues>
+                   </swe:nilValues>
+                   <swe:uom code="°C"/>
+                 </swe:Quantity>
+               </swe:field>
+             </swe:DataRecord>
+           </cis11:RangeType>
+
+   :param range_type_element: An XML element representing the RangeType
+       structure. It should contain one or more 'swe:DataRecord' elements,
+       each with 'swe:field' elements that can be either 'swe:Category' or
+       'swe:Quantity'.
+
+   :return: A RangeType object containing a list of Field objects. Each Field
+       object represents either a 'swe:Category' or 'swe:Quantity' extracted
+       from the XML, with associated metadata. If the input is None, then
+       None is returned.
+
+   :raises WCSClientException: If the provided XML does not conform to the expected structure.
+
+
+.. py:function:: parse_metadata(metadata_element)
+
+   Parse an XML Metadata element into a dictionary. Example XML structure:
+
+   .. code:: xml
+
+       <Metadata>
+         <covMetadata>
+           <title>Temperature</title>
+           <abstract>Monthly average air temperature.</abstract>
+           <description>Description.</description>
+           <keywords>climate, temperature</keywords>
+         </covMetadata>
+         <rasdamanCoverageMetadata>
+           <catalog>
+             <title>Temperature</title>
+             <thumbnail>https://localhost/thumbnail.png</thumbnail>
+             <description>Description.</description>
+             <provenance sourceUrl="https://localhost"
+               providerName="P" termsUrl="http://localhost"/>
+             <ourTerms>https://localhost/#terms</ourTerms>
+           </catalog>
+         </rasdamanCoverageMetadata>
+         <otherMetadata role="https://codelists" title="Catalog"
+           href="https://localhost"/>
+       </Metadata>
+
+   :param metadata_element: An XML element containing metadata information.
+       This element is expected to have the tag 'Metadata'.
+
+   :return: A dictionary representation of the metadata contained within the
+       XML element. Nested elements are converted to nested dicts. Element attributes
+       convert to key names starting with '@'.
+       If the input is ``None`` or an empty XML element, an empty dictionary is returned.
+
+   :raises WCSClientException: If the root tag of ``metadata_element`` is not 'Metadata'.
+
+
+.. py:function:: parse_coverage_summaries(xml_string, only_local = False)
+
+   Parses CoverageSummary XML elements from a GetCapabilities XML string.
+
+   This function takes an XML string representing a GetCapabilities response,
+   searches for the 'Contents' element, and extracts all 'CoverageSummary'
+   elements within it. Each 'CoverageSummary' element is parsed into a
+   :class:`wcs.model.BasicCoverage` object using the
+   :meth:`parse_coverage_summary` function.
+
+   :param xml_string: A GetCapabilities XML string, provided as either a
+                      string or bytes object.
+   :param only_local: parse only local coverages, filtering out any remote coverages.
+   :return: A list of BasicCoverage objects, each representing a parsed
+            CoverageSummary element from the XML.
+   :raises WCSClientException: If the XML does not contain a 'Contents'
+                               element, indicating an invalid GetCapabilities
+                               document.
+
+
+.. py:function:: parse_coverage_summary(element, only_local = False)
+
+   Parses an XML element representing a Coverage Summary into a BasicCoverage object.
+   Example XML structure:
+
+   .. code:: xml
+
+       <wcs20:CoverageSummary>
+         <wcs20:CoverageId>AverageChloroColorScaled</wcs20:CoverageId>
+         <wcs20:CoverageSubtype>ReferenceableGridCoverage
+         </wcs20:CoverageSubtype>
+         <ows:WGS84BoundingBox>
+           <ows:LowerCorner>-180 -90</ows:LowerCorner>
+           <ows:UpperCorner>180 90</ows:UpperCorner>
+         </ows:WGS84BoundingBox>
+         <ows:BoundingBox
+           crs="https://www.opengis.net/def/crs-compound?
+           1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;
+           2=https://www.opengis.net/def/crs/EPSG/0/4326"
+           dimensions="3">
+           <ows:LowerCorner>
+               "2002-07-01T00:00:00.000Z" -90 -180
+           </ows:LowerCorner>
+           <ows:UpperCorner>
+               "2015-05-01T00:00:00.000Z" 90 180
+           </ows:UpperCorner>
+         </ows:BoundingBox>
+         <ows:AdditionalParameters>
+           <ows:AdditionalParameter>
+             <ows:Name>sizeInBytes</ows:Name>
+             <ows:Value>188325000</ows:Value>
+           </ows:AdditionalParameter>
+           <ows:AdditionalParameter>
+             <ows:Name>axisList</ows:Name>
+             <ows:Value>ansi,Lat,Lon</ows:Value>
+           </ows:AdditionalParameter>
+         </ows:AdditionalParameters>
+       </wcs20:CoverageSummary>
+
+
+   :param element: An XML element representing a CoverageSummary.
+       it should contain 'CoverageId' and a 'CoverageSubtype', and optionally
+       'WGS84BoundingBox', 'BoundingBox', and 'AdditionalParameters'.
+   :param only_local: parse only local coverages, filtering out any remote coverages.
+   :return: A BasicCoverage object containing coverage information extracted from the XML,
+       or None if ``element`` is None or ``only_local`` is True and the coverage is remote.
+   :raises WCSClientException: If the coverage_summary_element does not have the
+                               expected tag, or is missing a 'CoverageId' element.
+
+
+.. py:function:: parse_wgs84_bounding_box(element)
+
+   Parses an XML element representing a WGS84 bounding box into a tuple of lon/lat
+   :class:`wcs.model.Axis` objects. Example XML structure:
+
+   .. code:: xml
+
+       <ows:WGS84BoundingBox>
+           <ows:LowerCorner>-180 -90</ows:LowerCorner>
+           <ows:UpperCorner>180 90</ows:UpperCorner>
+       </ows:WGS84BoundingBox>
+
+   :param element: A 'WGS84BoundingBox' XML element containing
+       'LowerCorner' and 'UpperCorner' elements.
+   :return: a tuple of lon/lat :class:`wcs.model.Axis` objects, or None if the input element is None.
+   :raises WCSClientException: If the element tag is not 'WGS84BoundingBox'.
+
+
+.. py:function:: parse_bounding_box(bbox_element, crs = None)
+
+   Parses an XML element representing a bounding box into a BoundingBox object.
+   Example XML structure:
+
+   .. code:: xml
+
+       <ows:BoundingBox
+         crs="https://www.opengis.net/def/crs-compound?
+         1=https://www.opengis.net/def/crs/OGC/0/AnsiDate&amp;
+         2=https://www.opengis.net/def/crs/EPSG/0/4326" dimensions="3">
+         <ows:LowerCorner>
+           "2002-07-01T00:00:00.000Z" -90 -180
+         </ows:LowerCorner>
+         <ows:UpperCorner>
+           "2015-05-01T00:00:00.000Z" 90 180
+         </ows:UpperCorner>
+       </ows:BoundingBox>
+
+   :param bbox_element: An XML element representing the bounding box. It should
+                        contain 'LowerCorner' and 'UpperCorner' child elements.
+   :param crs: An optional CRS identifier string. If not provided, the CRS is
+               inferred from the 'crs' attribute of the bbox_element.
+   :return: A :class:`wcs.model.BoundingBox` object containing the parsed CRS and axis
+       lower/upper bounds.
+   :raises WCSClientException: If the parsing of 'LowerCorner' or 'UpperCorner' elements fails.
+
+
+.. py:function:: parse_additional_parameters(element)
+
+   Parses additional parameters from an XML element into a dict of key/value strings.
+   Example XML structure:
+
+   .. code:: xml
+
+       <ows:AdditionalParameters>
+           <ows:AdditionalParameter>
+               <ows:Name>sizeInBytes</ows:Name>
+               <ows:Value>188325000</ows:Value>
+           </ows:AdditionalParameter>
+           <ows:AdditionalParameter>
+               <ows:Name>axisList</ows:Name>
+               <ows:Value>ansi,Lat,Lon</ows:Value>
+           </ows:AdditionalParameter>
+       </ows:AdditionalParameters>
+
+   :param element: An XML element containing 'AdditionalParameter' child elements.
+                   Each 'AdditionalParameter' element is expected to contain a 'Name'
+                   and a 'Value' sub-element.
+   :return: A dictionary mapping parameter names to their values.
+   :raises WCSClientException: If an unexpected element is found,
+                               or if 'Name' or 'Value' elements are missing.
+
+
+.. py:function:: parse_bounds_list(element_text)
+
+   Parses a space-separated string of axis bounds into a list of properly
+   typed bound values. Each string bound is parsed with :meth:`parse_bound`.
+
+   :param element_text: A space-separated string containing bound values.
+   :return: A list of parsed bounds, where each bound is of type :attr:`BoundType`.
+   :raises WCSClientException: If any bound in the list cannot be parsed into
+                               a supported type by :meth:`parse_bound`.
+
+
+.. py:function:: parse_bound(bound)
+
+   Parses a given axis bound string into its appropriate data type.
+
+   The method attempts to interpret the input ``bound`` in several formats:
+
+   - A string representing a datetime in ISO 8601 format.
+   - A raw string if it starts with a " but failed to parse as a datetime.
+   - A string representing an integer.
+   - A string representing a float.
+
+   :param bound: A string representing the bound value to be parsed. It can be
+                 a string datetime in ISO 8601 format (optionally in double quotes),
+                 an integer, or a float.
+   :return: The parsed bound in its appropriate data type.
+            Returns `None`` if the input is `None``.
+   :raises WCSClientException: If the `bound`` cannot be parsed into any of the supported types.
+
+
+.. py:function:: crs_to_crs_per_axis(crs)
+
+   Convert a single CRS to a list of CRS per axis.
+   If ``crs`` contains crs-compound, i.e. it is a compund CRS, then it is split first
+   into it's component CRS. For each crs then,
+   - it is added twice into the result list if 'EPSG' is contained in it
+   - otherwise, it is added once into the result list
+
+   :return: a list of CRS per axis, or an empty list if crs is None.
+
+
+.. py:function:: get_child(element, tag, throw_if_not_found=True)
+
+   Retrieve a child element matching a given ``tag`` from an XML element.
+
+   :param element: The XML element to search for a child with the specified tag.
+       The tags of child elements are parsed to remove namespaces before comparison
+       with the :meth:`parse_parse_tag_name` method.
+   :param tag: The tag name of the child element to search for; it should not
+       include any namespaces.
+   :param throw_if_not_found: If True, raises an exception when no matching child is found.
+                              If False, returns None instead.
+
+   :return: The first child element with the specified tag, or None if not found
+            ``throw_if_not_found`` is False.
+
+   :raises WCSClientException: If no child with the specified tag is found and
+                               ``throw_if_not_found`` is True.
+
+
+.. py:function:: first_child(element, expected_tag = None)
+
+   Retrieve the first child element of an XML element.
+
+   Optionally, it can validate the tag of the first child against an expected
+   tag (without any namespaces). If no children are present, it raises a
+   :class:`wcs.model.WCSClientException`.
+
+   :param element: The XML element whose first child is to be retrieved.
+   :param expected_tag: The expected tag name of the first child element.
+                        If provided, the function will validate the tag of the first child.
+
+   :return: The first child element of the given XML element.
+
+   :raises WCSClientException: If the element has no children or if the tag of the
+                               first child does not match the expected tag.
+
+
+.. py:function:: parse_tag_name(element)
+
+   Extract just the tag name of an XML element, removing namespace components.
+   Example: "{http://www.example.com}root" -> "root"
+
+   :param element: An XML element from which to extract the tag name.
+   :return: The tag name of the element.
+
+
+.. py:function:: validate_tag_name(element, expected_tag)
+
+   Validate the tag name of an XML element against an expected tag.
+
+   This function checks if the tag name of the given XML element matches the
+   expected tag. It uses the :meth:`parse_tag_name` function to remove any
+   namespaces in the tag name. If the tag names do not match, it raises a
+   :class:`wcs.model.WCSClientException`.
+
+   :param element: The XML element whose tag name is to be validated.
+   :param expected_tag: The expected tag name to validate against.
+
+   :raises WCSClientException: If the tag name of the ``element`` does not match the
+                               expected tag.
+
+
+.. py:function:: element_to_string(element)
+
+   Serialize an XML element to a string.
+
+   :param element: The XML element to serialize.
+   :return: A Unicode string representation of the XML element.
+
+
+.. py:function:: element_to_dict(t)
+
+   Convert an XML element into a nested dictionary.
+
+   This function recursively converts an XML element and its children into a
+   nested dictionary. The keys of the dictionary are the tag names of the XML
+   elements. Attributes of the XML elements are prefixed with '@' in the
+   dictionary keys, and text content is stored under a '#text' key.
+
+   :param t: The XML element to convert.
+   :return: A nested dictionary representing the structure and content of the XML element.
+
+   :note:
+       - Elements with multiple children having the same tag name are converted into lists.
+       - Text content is only added to the dictionary if the element has children
+         or attributes, to avoid overwriting important data with whitespace.
+
+
