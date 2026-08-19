@@ -45,8 +45,8 @@ class WebCoverageService:
 
     def __init__(self,
                  endpoint: str,
-                 username: str = None,
-                 password: str = None,
+                 username: Optional[str] = None,
+                 password: Optional[str] = None,
                  conn_timeout: int = DEFAULT_CONN_TIMEOUT,
                  read_timeout: int = DEFAULT_READ_TIMEOUT):
         self.endpoint = endpoint
@@ -142,8 +142,9 @@ class WebCoverageService:
                     err = ex_code + ': '
                 exception_texts = ex.findall('.//ows:ExceptionText', namespaces)
                 for ex_text in exception_texts:
-                    err += ex_text.text
+                    if ex_text.text:
+                        err += ex_text.text
                 ret.append(err)
             return '\n'.join(ret)
         except ET.ParseError:
-            return xml_str
+            return xml_str.decode('utf-8') if isinstance(xml_str, bytes) else xml_str
