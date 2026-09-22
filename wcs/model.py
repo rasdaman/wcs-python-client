@@ -250,9 +250,9 @@ class Axis:
         elif self.coefficients:
             count = len(self.coefficients)
             if count > 6:
-                coefficients = ', '.join([_bound_to_str(c) for c in self.coefficients[0:3]])
+                coefficients = ', '.join([_bound_to_str(c) for c in self.coefficients[:3]])
                 coefficients += ', ..., '
-                coefficients += ', '.join([_bound_to_str(c) for c in self.coefficients[-4:-1]])
+                coefficients += ', '.join([_bound_to_str(c) for c in self.coefficients[-3:]])
             else:
                 coefficients = ', '.join([_bound_to_str(c) for c in self.coefficients])
             ret += f' -- irregular axis with {count} slices at {coefficients}'

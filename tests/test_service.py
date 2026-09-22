@@ -161,7 +161,7 @@ def test_to_short_str():
     expected = '''AvgLandTemp:
   crs: OGC:AnsiDate+EPSG:4326
   bbox:
-    ansi("2000-02-01":"2015-06-01") -- irregular axis with 185 slices at "2000-02-01", "2000-03-01", "2000-04-01", ..., "2015-03-01", "2015-04-01", "2015-05-01"
+    ansi("2000-02-01":"2015-06-01") -- irregular axis with 185 slices at "2000-02-01", "2000-03-01", "2000-04-01", ..., "2015-04-01", "2015-05-01", "2015-06-01"
     Lat(-90:90) -- regular axis with resolution of -0.1 degree (1800 grid points)
     Lon(-180:180) -- regular axis with resolution of 0.1 degree (3600 grid points)
   grid_bbox:
@@ -170,6 +170,56 @@ def test_to_short_str():
     Lon:"CRS:1"(0:3599)
   range_type (bands):
     Gray: float, nodata 99999
+'''
+    print(cov.to_short_str())
+    assert cov.to_short_str() == expected
+
+def test_to_short_str2():
+    service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
+    cov = service.list_full_info('Temperature4D')
+    expected = '''Temperature4D:
+  crs: OGC:AnsiDate+OGC:Index1D+EPSG:4326
+  bbox:
+    ansi("2010-01-01":"2010-12-01") -- irregular axis with 12 slices at "2010-01-01", "2010-02-01", "2010-03-01", ..., "2010-10-01", "2010-11-01", "2010-12-01"
+    elev(0:400) -- irregular axis with 5 slices at 0, 100, 200, 300, 400
+    Lat(-90:90) -- regular axis with resolution of -0.1 degree (1800 grid points)
+    Lon(-180:180) -- regular axis with resolution of 0.1 degree (3600 grid points)
+  grid_bbox:
+    ansi:"CRS:1"(0:11)
+    elev:"CRS:1"(0:4)
+    Lat:"CRS:1"(0:1799)
+    Lon:"CRS:1"(0:3599)
+  range_type (bands):
+    red: unsigned char [0,255] -- red channel
+    green: unsigned char [0,255] -- green channel
+    blue: unsigned char [0,255] -- blue channel
+  metadata:
+    covMetadata:
+      bands:
+        red:
+          valid_min: 0
+          valid_max: 255
+          grid_mapping: crs
+          units: 10^0
+        green:
+          valid_min: 0
+          valid_max: 255
+          grid_mapping: crs
+          units: 10^0
+        blue:
+          valid_min: 0
+          valid_max: 255
+          grid_mapping: crs
+          units: 10^0
+      grid_mapping:
+        identifier: crs
+        grid_mapping_name: latitude_longitude
+        long_name: CRS definition
+        longitude_of_prime_meridian: 0.0
+        semi_major_axis: 6378137.0
+        inverse_flattening: 298.257223563
+        crs_wkt: GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AXIS["Latitude",NORTH],AXIS["Longitude",EAST],AUTHORITY["EPSG","4326"]]
+      description: World temperature 4D coverage.
 '''
     print(cov.to_short_str())
     assert cov.to_short_str() == expected
