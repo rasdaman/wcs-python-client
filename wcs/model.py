@@ -122,16 +122,52 @@ class FullCoverage:
 
     def to_short_str(self):
         ret = self.name + ':'
-        if self.bbox is not None:
-            ret += f'\n{self.bbox.to_short_str()}'
-        if self.grid_bbox is not None:
-            ret += f'\n{self.grid_bbox.to_short_str()}'
-        if self.range_type is not None:
+        if self.bbox:
+            ret += '\n'
+            if self.grid_bbox:
+                # override generation to include axis grid extents
+                geo_axes = self.bbox.axes
+                grid_axes = self.grid_bbox.axes
+                if self.bbox.crs:
+                    ret += f'  crs: {Crs.to_short_notation(self.bbox.crs)}\n'
+                ret += '  bbox:'
+                indent = '\n    '
+                for i in range(len(geo_axes)):
+                    ret += geo_axes[i].to_short_str()
+                    if not geo_axes[i].is_irregular() and \
+                        isinstance(grid_axes[i].low, int) and isinstance(grid_axes[i].high, int):
+                        count = grid_axes[i].high - grid_axes[i].low + 1
+                        ret += f' ({count} grid points)'
+            else:
+                ret += f'{self.bbox.to_short_str()}'
+        if self.grid_bbox:
+            ret += '\n'
+            if self.bbox:
+                # by default self.grid_bbox.to_short_str() generates:
+                # grid_bbox:
+                #   i: 0 to 184
+                #   ...
+                # 
+                # so we override the generation here to get this:
+                # grid_bbox:
+                #   ansi:"CRS:1"(0:184)
+                #   ...
+                geo_axes = self.bbox.axes
+                grid_axes = self.grid_bbox.axes
+                ret += '  grid_bbox:'
+                for i in range(len(geo_axes)):
+                    ret += indent
+                    ret += f'{geo_axes[i].name}:"CRS:1"({grid_axes[i].low}:{grid_axes[i].high})'
+            else:
+                ret += self.grid_bbox.to_short_str()
+        if self.range_type:
             ret += f'\n{self.range_type.to_short_str()}'
-        if len(self.metadata) > 0:
+        if self.metadata:
             metadata = _dict_to_yaml(self.metadata, filter_keys=['areasOfValidity'])
-            metadata = textwrap.indent(metadata, ' ' * 4)
-            ret += f'\n  metadata:\n{metadata}'
+            if metadata:
+                metadata = textwrap.indent(metadata, ' ' * 4)
+                ret += f'\n  metadata:\n{metadata}'
+        if ret[-1] != '\n': ret += '\n'
         return ret
 
     def __hash__(self):
@@ -206,26 +242,20 @@ class Axis:
 
     def to_short_str(self):
         indent = '\n    '
-        ret = f'{indent}{self.name}:'
+        ret = f'{indent}{self.name}({_bound_to_str(self.low)}:{_bound_to_str(self.high)})'
 
-        if self.resolution is not None:
-            ret += ' regular axis'
-        elif self.coefficients is not None:
-            ret += ' irregular axis'
-
-        ret += f' from {_bound_to_str(self.low)} to {_bound_to_str(self.high)}'
-        if self.resolution is not None:
-            ret += f' resolution {self.resolution}'
-        if self.uom is not None:
-            ret += f', uom {self.uom}'
-        if self.coefficients is not None:
-            if len(self.coefficients) > 6:
+        if self.resolution:
+            ret += f' -- regular axis with resolution of {self.resolution}'
+            if self.uom: ret += f' {self.uom}'
+        elif self.coefficients:
+            count = len(self.coefficients)
+            if count > 6:
                 coefficients = ', '.join([_bound_to_str(c) for c in self.coefficients[0:3]])
                 coefficients += ', ..., '
                 coefficients += ', '.join([_bound_to_str(c) for c in self.coefficients[-4:-1]])
             else:
                 coefficients = ', '.join([_bound_to_str(c) for c in self.coefficients])
-            ret += f', coefficients: {coefficients}'
+            ret += f' -- irregular axis with {count} slices at {coefficients}'
         return ret
 
     def __hash__(self):
@@ -357,12 +387,17 @@ class BoundingBox:
         return ret
 
     def to_short_str(self) -> str:
-        bbox_type = 'grid_bbox'
-        ret = ''
         if self.crs is not None:
-            ret += f'  crs: {Crs.to_short_notation(self.crs)}\n'
+            ret = f'  crs: {Crs.to_short_notation(self.crs)}\n'
             bbox_type = 'bbox'
-        ret += f'  {bbox_type}:{_list_to_short_str(self.axes, "")}'
+            axes_str = _list_to_short_str(self.axes, "")
+        else:
+            ret = ''
+            bbox_type = 'grid_bbox'
+            axes = [a.to_short_str().replace('regular axis from ', '').replace(' resolution 1', '') for a in self.axes]
+            axes_str = ''.join(axes)
+        
+        ret += f'  {bbox_type}:{axes_str}'
         return ret
 
     def __getitem__(self, index: Union[int, str]) -> Axis:
@@ -427,7 +462,7 @@ class RangeType:
 
     def to_short_str(self):
         fields = _list_to_short_str(self.fields, '')
-        ret = f'  range_type:{fields}'
+        ret = f'  range_type (bands):{fields}'
         return ret
 
     def __getitem__(self, index: Union[int, str]) -> Field:
@@ -530,11 +565,47 @@ class Field:
     def to_short_str(self):
         indent = '\n    '
 
-        nil_str = ''
-        if self.nil_values is not None:
-            nil_str = f', nodata: {_list_to_str(self.nil_values, ",")}'
+        extra = ''
+        if self.label and self.name.lower() != self.label.lower():
+            extra += self.label
 
-        ret = f'{indent}{self.name}: {self.label} ({self.uom}{nil_str}) - {self.description}'
+        data_type = ''
+        if self.definition and '/dataType/' in self.definition:
+            # see https://doc.rasdaman.org/05_geo-services-guide.html#range-type
+            def_wcps_type_map = {
+                'signedByte': 'char [-128,127]',
+                'unsignedByte': 'unsigned char [0,255]',
+                'signedShort': 'short [−32768,32767]',
+                'unsignedShort': 'unsigned short [0,65535]',
+                'signedInt': 'int [−2^31,2^31-1]',
+                'unsignedInt': 'unsigned int [0,2^32]',
+                'float32': 'float',
+                'float64': 'double',
+                'cint16': 'cint16',
+                'cint32': 'cint32',
+                'cfloat32': 'cfloat32',
+                'cfloat64': 'cfloat64',
+            }
+            def_type = self.definition.split('/')[-1]
+            if def_type in def_wcps_type_map:
+                data_type = def_wcps_type_map[def_type]
+        if data_type:
+            if extra: extra += ', '
+            extra += data_type
+        if self.uom and self.uom != '10^0':
+            if extra: extra += ', '
+            extra += 'UoM ' + self.uom
+        if self.nil_values:
+            if extra: extra += ', '
+            nil_values = _list_to_str(self.nil_values, ",")
+            if len(self.nil_values) > 1: nil_values = '[' + nil_values + ']'
+            extra += f'nodata {nil_values}'
+        if self.description:
+            if extra: extra += ' -- '
+            extra += self.description
+
+        ret = indent + self.name
+        if extra: ret += ': ' + extra
         indent += '  '
         return ret
 
@@ -700,6 +771,8 @@ def _dict_to_yaml(d, indent=0, filter_keys=[]):
     yaml_str = ""
     for key, value in d.items():
         if str(key) in filter_keys:
+            continue
+        if not value:
             continue
         # quote the key if needed
         if any(c in key for c in ' \t') or \

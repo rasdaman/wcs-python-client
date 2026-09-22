@@ -48,22 +48,21 @@ def test_list_coverages():
 
 
 def test_list_coverages_only_local():
-    service = WebCoverageService("https://fairicube.rasdaman.com/rasdaman/ows")
+    service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
     coverages = service.list_coverages(only_local=True)
     assert all(cov.is_local() for k, cov in coverages.items())
 
 
 def test_list_coverages_all():
-    service = WebCoverageService("https://fairicube.rasdaman.com/rasdaman/ows")
+    service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
     coverages = service.list_coverages()
     assert not all(cov.is_local() for k, cov in coverages.items())
 
 
 # def test_list_coverages_readme():
-#     service = WebCoverageService("https://fairicube.rasdaman.com/rasdaman/ows")
+#     service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
 #     coverages = service.list_coverages()
-#     # cov = coverages['dominant_leaf_type_20m']
-#     cov = service.list_full_info('dominant_leaf_type_20m')
+#     cov = service.list_full_info('AvgLandTemp')
 #     print(cov)
 
 
@@ -144,7 +143,6 @@ def test_list_full_info():
       nil_values: 99999
       uom: 10^0
   metadata:
-    covMetadata: None
 '''
     assert str(cov) == expected
     subset = cov.bbox.ansi["2006-08-01" : "2007-01-01"]
@@ -152,10 +150,10 @@ def test_list_full_info():
     assert cov.is_local()
 
 def test_list_full_info2():
-    service = WebCoverageService("https://fairicube.rasdaman.com/rasdaman/ows")
-    cov = service.list_full_info('dominant_leaf_type_20m')
-    catalog_link = cov.metadata['fairicubeMetadata']['@href']
-    assert catalog_link == "https://stacapi.eoxhub.fairicube.eu/collections/index/items/dominant_leaf_type_20m"
+    service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
+    cov = service.list_full_info('Germany_DTM')
+    descr = cov.metadata['covMetadata']['description']
+    assert descr == "Digital terrain model of Germany, values represent terrain height in meters."
 
 def test_to_short_str():
     service = WebCoverageService("https://ows.rasdaman.org/rasdaman/ows")
@@ -163,16 +161,15 @@ def test_to_short_str():
     expected = '''AvgLandTemp:
   crs: OGC:AnsiDate+EPSG:4326
   bbox:
-    ansi: irregular axis from "2000-02-01" to "2015-06-01", uom d, coefficients: "2000-02-01", "2000-03-01", "2000-04-01", ..., "2015-03-01", "2015-04-01", "2015-05-01"
-    Lat: regular axis from -90 to 90 resolution -0.1, uom degree
-    Lon: regular axis from -180 to 180 resolution 0.1, uom degree
+    ansi("2000-02-01":"2015-06-01") -- irregular axis with 185 slices at "2000-02-01", "2000-03-01", "2000-04-01", ..., "2015-03-01", "2015-04-01", "2015-05-01"
+    Lat(-90:90) -- regular axis with resolution of -0.1 degree (1800 grid points)
+    Lon(-180:180) -- regular axis with resolution of 0.1 degree (3600 grid points)
   grid_bbox:
-    i: regular axis from 0 to 184 resolution 1
-    j: regular axis from 0 to 1799 resolution 1
-    k: regular axis from 0 to 3599 resolution 1
-  range_type:
-    Gray: Gray (10^0, nodata: 99999) - None
-  metadata:
-    covMetadata: None
+    ansi:"CRS:1"(0:184)
+    Lat:"CRS:1"(0:1799)
+    Lon:"CRS:1"(0:3599)
+  range_type (bands):
+    Gray: float, nodata 99999
 '''
+    print(cov.to_short_str())
     assert cov.to_short_str() == expected
